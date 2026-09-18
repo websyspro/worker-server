@@ -1,6 +1,6 @@
 <?php
 
-namespace Websyspro\Server;
+namespace Websyspro\WorkerServer;
 
 use Closure;
 use ErrorException;
@@ -8,22 +8,21 @@ use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
-use Websyspro\Server\Enums\RequestMethod;
-use Websyspro\Server\Request;
-use Websyspro\Server\Response;
-use Websyspro\Server\Container;
-use Websyspro\Server\Model;
-use Websyspro\Server\Decorators\Server\Controller;
-use Websyspro\Server\Decorators\Server\Module;
-use Websyspro\Server\Decorators\Server\Get;
-use Websyspro\Server\Decorators\Server\Post;
-use Websyspro\Server\Decorators\Server\Put;
-use Websyspro\Server\Decorators\Server\Patch;
-use Websyspro\Server\Decorators\Server\Delete;
-use Websyspro\Server\Decorators\Server\Body;
-use Websyspro\Server\Decorators\Server\Query;
-use Websyspro\Server\Decorators\Server\Param;
-use Websyspro\Server\Decorators\Server\File;
+use Websyspro\WorkerServer\Enums\RequestMethod;
+use Websyspro\WorkerServer\Request;
+use Websyspro\WorkerServer\Container;
+use Websyspro\WorkerServer\Model;
+use Websyspro\WorkerServer\Decorators\Controller;
+use Websyspro\WorkerServer\Decorators\Module;
+use Websyspro\WorkerServer\Decorators\Get;
+use Websyspro\WorkerServer\Decorators\Post;
+use Websyspro\WorkerServer\Decorators\Put;
+use Websyspro\WorkerServer\Decorators\Patch;
+use Websyspro\WorkerServer\Decorators\Delete;
+use Websyspro\WorkerServer\Decorators\Body;
+use Websyspro\WorkerServer\Decorators\Query;
+use Websyspro\WorkerServer\Decorators\Param;
+use Websyspro\WorkerServer\Decorators\File;
 use function strtoupper;
 use function explode;
 use function preg_match;

@@ -1,10 +1,9 @@
 <?php
 
-namespace Websyspro\Server;
+namespace Websyspro\WorkerServer;
 
 use function json_encode;
 use function strlen;
-use function strtolower;
 
 class Response
 {

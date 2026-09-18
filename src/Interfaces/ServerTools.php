@@ -1,6 +1,6 @@
 <?php
 
-namespace Websyspro\Server\Interfaces;
+namespace Websyspro\WorkerServer\Interfaces;
 
 class ServerTools
 {

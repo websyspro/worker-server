@@ -1,15 +1,14 @@
 <?php
 
-namespace Websyspro\Server;
+namespace Websyspro\WorkerServer;
 
-use Websyspro\Server\Interfaces\ServerTools;
-use Websyspro\Server\Request;
-use Websyspro\Server\Response;
-use Websyspro\Server\Logger;
+use Websyspro\WorkerServer\Interfaces\ServerTools;
+use Websyspro\WorkerServer\Request;
+use Websyspro\WorkerServer\Response;
+use Websyspro\WorkerServer\Logger;
 use function defined;
 use function in_array;
 use function array_search;
-use function array_merge;
 use function array_column;
 use function stream_select;
 use function stream_socket_accept;

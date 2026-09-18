@@ -1,6 +1,6 @@
 <?php
 
-namespace Websyspro\Server;
+namespace Websyspro\WorkerServer;
 
 use function date;
 use function microtime;

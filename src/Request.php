@@ -1,11 +1,10 @@
 <?php
 
-namespace Websyspro\Server;
+namespace Websyspro\WorkerServer;
 
 use function explode;
 use function parse_str;
 use function json_decode;
-use function json_encode;
 use function str_contains;
 use function strtolower;
 use function strtoupper;

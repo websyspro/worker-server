@@ -1,6 +1,6 @@
 <?php
 
-namespace Websyspro\Server\Decorators;
+namespace Websyspro\WorkerServer\Decorators;
 
 use Attribute;
 

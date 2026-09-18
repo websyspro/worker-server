@@ -1,6 +1,6 @@
 <?php
 
-namespace Websyspro\Server\Enums;
+namespace Websyspro\WorkerServer\Enums;
 
 enum RequestMethod
 {
