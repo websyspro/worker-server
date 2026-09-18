@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "25fdae0d09bff69d6d2dae7a0d31e3f0",
+    "content-hash": "cc01417c12f34e8ccd0848404e35c102",
     "packages": [
         {
             "name": "websyspro/connection",
-            "version": "1.0.3",
+            "version": "1.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/connection.git",
-                "reference": "1f8b82ac49910d28552e4d1ca07ff2095aa01cc7"
+                "reference": "1f2f17114a2b5a017308b45c125616dae7003808"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/connection/zipball/1f8b82ac49910d28552e4d1ca07ff2095aa01cc7",
-                "reference": "1f8b82ac49910d28552e4d1ca07ff2095aa01cc7",
+                "url": "https://api.github.com/repos/websyspro/connection/zipball/1f2f17114a2b5a017308b45c125616dae7003808",
+                "reference": "1f2f17114a2b5a017308b45c125616dae7003808",
                 "shasum": ""
             },
             "require": {
@@ -43,22 +43,22 @@
             "description": "Connection to MySQL, PostgreSQL, and SQL Server databases",
             "support": {
                 "issues": "https://github.com/websyspro/connection/issues",
-                "source": "https://github.com/websyspro/connection/tree/1.0.3"
+                "source": "https://github.com/websyspro/connection/tree/1.0.4"
             },
-            "time": "2026-09-17T20:35:51+00:00"
+            "time": "2026-09-18T13:39:21+00:00"
         },
         {
             "name": "websyspro/devtools",
-            "version": "1.0.158",
+            "version": "1.0.159",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/devtools.git",
-                "reference": "386dd5a896a66a1370b45d2bc4f432fe6e5d895e"
+                "reference": "1fa728fcf26592410f32a3e3748b17224b95cf67"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/devtools/zipball/386dd5a896a66a1370b45d2bc4f432fe6e5d895e",
-                "reference": "386dd5a896a66a1370b45d2bc4f432fe6e5d895e",
+                "url": "https://api.github.com/repos/websyspro/devtools/zipball/1fa728fcf26592410f32a3e3748b17224b95cf67",
+                "reference": "1fa728fcf26592410f32a3e3748b17224b95cf67",
                 "shasum": ""
             },
             "require": {
@@ -89,9 +89,9 @@
             "description": "Set of features for hot reloads during development",
             "support": {
                 "issues": "https://github.com/websyspro/devtools/issues",
-                "source": "https://github.com/websyspro/devtools/tree/1.0.158"
+                "source": "https://github.com/websyspro/devtools/tree/1.0.159"
             },
-            "time": "2026-09-12T23:50:43+00:00"
+            "time": "2026-09-18T13:33:54+00:00"
         },
         {
             "name": "websyspro/entity",
@@ -179,16 +179,16 @@
         },
         {
             "name": "websyspro/package",
-            "version": "1.0.83",
+            "version": "1.0.84",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/package.git",
-                "reference": "4b39ce88378047bf7c71a659eaa27b489d2e6bb0"
+                "reference": "9bfc28d32a20e84a9b663c74c50ac093a7d712ba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/package/zipball/4b39ce88378047bf7c71a659eaa27b489d2e6bb0",
-                "reference": "4b39ce88378047bf7c71a659eaa27b489d2e6bb0",
+                "url": "https://api.github.com/repos/websyspro/package/zipball/9bfc28d32a20e84a9b663c74c50ac093a7d712ba",
+                "reference": "9bfc28d32a20e84a9b663c74c50ac093a7d712ba",
                 "shasum": ""
             },
             "bin": [
@@ -213,9 +213,9 @@
             "description": "Version Management",
             "support": {
                 "issues": "https://github.com/websyspro/package/issues",
-                "source": "https://github.com/websyspro/package/tree/1.0.83"
+                "source": "https://github.com/websyspro/package/tree/1.0.84"
             },
-            "time": "2026-09-08T23:06:16+00:00"
+            "time": "2026-09-18T13:34:52+00:00"
         },
         {
             "name": "websyspro/utils",
