@@ -4,8 +4,52 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9654c2f6dedf276d6016d68f48ef2610",
+    "content-hash": "1dfab4735511e76a4d2087d89c22b956",
     "packages": [
+        {
+            "name": "websyspro/arrowtosql",
+            "version": "1.0.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/websyspro/arrowtosql.git",
+                "reference": "45a8d0712ed27b8e8f377b3feca2bd488ab0e524"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/websyspro/arrowtosql/zipball/45a8d0712ed27b8e8f377b3feca2bd488ab0e524",
+                "reference": "45a8d0712ed27b8e8f377b3feca2bd488ab0e524",
+                "shasum": ""
+            },
+            "require": {
+                "websyspro/connection": "^1.0",
+                "websyspro/entity": "^1.0",
+                "websyspro/logger": "^1.0",
+                "websyspro/package": "^1.0",
+                "websyspro/utils": "^1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Websyspro\\ArrowToSql\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "websyspro",
+                    "email": "websyspro.services@gmail.com"
+                }
+            ],
+            "description": "Convert Arrow FN into SQL queries",
+            "support": {
+                "issues": "https://github.com/websyspro/arrowtosql/issues",
+                "source": "https://github.com/websyspro/arrowtosql/tree/1.0.7"
+            },
+            "time": "2026-09-18T21:36:22+00:00"
+        },
         {
             "name": "websyspro/connection",
             "version": "1.0.5",

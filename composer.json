@@ -1,6 +1,6 @@
 {
   "name": "websyspro/worker-server",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Set of features in PHP for creating entitys for database",
   "minimum-stability": "dev",
   "prefer-stable": true,
@@ -25,7 +25,8 @@
     "websyspro/package": "^1.0",
     "websyspro/connection": "^1.0",
     "websyspro/devtools": "^1.0",
-    "websyspro/entity": "^1.0"
+    "websyspro/entity": "^1.0",
+    "websyspro/arrowtosql": "^1.0"
   },
   "server": {
     "port": 8080,
