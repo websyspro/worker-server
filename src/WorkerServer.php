@@ -183,25 +183,23 @@ extends AbstractWorkerServer
   }
 
   public function register(
-    string $controllerClass,
+    string $controllerClass, 
     string $modulePrefix = ""
   ): WorkerServer {
-    $reflection  = new ReflectionClass($controllerClass);
-    $controllerAttr = $reflection->getAttributes( Controller::class )[0] ?? null;
+    $reflection = new ReflectionClass($controllerClass);
+    $controllerAttr = $reflection->getAttributes(Controller::class)[0] ?? null;
 
     if( $controllerAttr === null ){
       return $this;
     }
 
-    $basePath = sprintf( "%s%s", $modulePrefix, sprintf( "/%s/", trim( 
-      $controllerAttr->newInstance()->prefix
-    )));
-
-    $instance = Container::make( $controllerClass );
-    $httpAttrs = [ Get::class, Post::class, Put::class, Patch::class, Delete::class ];
+    $controllerPath = '/' . trim($controllerAttr->newInstance()->prefix, '/');
+    $basePath = $modulePrefix . $controllerPath;
+    $instance = Container::make($controllerClass);
+    $httpAttrs = [Get::class, Post::class, Put::class, Patch::class, Delete::class];
 
     Logger::info("Controller -> {$reflection->getShortName()}");
-    foreach( $reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method ){
+    foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
       foreach ($httpAttrs as $attrClass) {
         $attrs = $method->getAttributes($attrClass);
         if( empty( $attrs )){
@@ -210,15 +208,10 @@ extends AbstractWorkerServer
 
         $subPath = $attrs[0]->newInstance()->path;
         $httpMethod = strtoupper((new ReflectionClass($attrClass))->getShortName());
-        $fullPath = $basePath . ($subPath === "/" ? "" : $subPath);
+        $fullPath = $basePath . ($subPath === '/' ? '' : $subPath);
+        $handler = Closure::fromCallable([$instance, $method->getName()]);
 
-        $handler = Closure::fromCallable([
-          $instance, $method->getName()
-        ]);
-
-        $this->registerRouter(
-          $httpMethod, $fullPath, $handler
-        );
+        $this->registerRouter($httpMethod, $fullPath, $handler);
       }
     }
 
