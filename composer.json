@@ -1,5 +1,5 @@
 {
-  "name": "websyspro/arrowtosql",
+  "name": "websyspro/worker-server",
   "version": "1.0.6",
   "description": "Set of features in PHP for creating entitys for database",
   "minimum-stability": "dev",
