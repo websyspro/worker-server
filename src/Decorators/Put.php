@@ -1,13 +1,13 @@
 <?php
 
-namespace Websyspro\Server\Decorators\Server;
+namespace Websyspro\Server\Decorators;
 
 use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
 class Put
 {
-    public function __construct(
-        public readonly string $path = '/'
-    ) {}
+  public function __construct(
+    public readonly string $path = "/"
+  ){}
 }
