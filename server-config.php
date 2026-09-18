@@ -1,6 +1,6 @@
 <?php
 
-use Websyspro\Server\Interfaces\ServerTools;
+use Websyspro\WorkerServer\Interfaces\ServerTools;
 
 /**
  * Server Server Runtime
