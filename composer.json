@@ -24,6 +24,7 @@
     "websyspro/utils": "^1.0",
     "websyspro/package": "^1.0",
     "websyspro/connection": "^1.0",
+    "websyspro/devtools": "^1.0",
     "websyspro/entity": "^1.0"
   },
   "server": {
