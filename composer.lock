@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e2b9eb8409d2667ffb4a9a6c1cfe147b",
+    "content-hash": "ee945a4d292130eaada78d2b6d122e69",
     "packages": [
         {
             "name": "websyspro/connection",
@@ -49,16 +49,16 @@
         },
         {
             "name": "websyspro/devtools",
-            "version": "1.0.159",
+            "version": "1.0.160",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/devtools.git",
-                "reference": "1fa728fcf26592410f32a3e3748b17224b95cf67"
+                "reference": "243ee1ef90d97c06e3c1a60a0fa4873efed24a2f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/devtools/zipball/1fa728fcf26592410f32a3e3748b17224b95cf67",
-                "reference": "1fa728fcf26592410f32a3e3748b17224b95cf67",
+                "url": "https://api.github.com/repos/websyspro/devtools/zipball/243ee1ef90d97c06e3c1a60a0fa4873efed24a2f",
+                "reference": "243ee1ef90d97c06e3c1a60a0fa4873efed24a2f",
                 "shasum": ""
             },
             "require": {
@@ -89,9 +89,9 @@
             "description": "Set of features for hot reloads during development",
             "support": {
                 "issues": "https://github.com/websyspro/devtools/issues",
-                "source": "https://github.com/websyspro/devtools/tree/1.0.159"
+                "source": "https://github.com/websyspro/devtools/tree/1.0.160"
             },
-            "time": "2026-09-18T13:33:54+00:00"
+            "time": "2026-09-18T17:20:52+00:00"
         },
         {
             "name": "websyspro/entity",
