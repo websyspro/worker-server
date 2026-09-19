@@ -15,7 +15,7 @@ class Response
 
   private static function jsonRequest(
     mixed $content, 
-    bool $success = 200
+    bool $success = true
   ): string {
     return json_encode([
       "success" => $success,
