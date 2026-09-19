@@ -299,23 +299,26 @@ extends AbstractWorkerServer
       );
 
       if( $match === null ){
-        return Response::text(
+        return Response::json(
           "404 - {$request->method} {$request->path} nao encontrado", 404
         );
       }
 
       [ $handler, $params ] = $match;
-      $result = $handler( ...$this->resolveArgs(
-        $handler, $request->withParams( $params )
-      ));
+      $result = $handler( 
+        ...$this->resolveArgs(
+          $handler, 
+          $request->withParams( $params )
+        )
+      );
 
       if( $result instanceof Response ){
         return $result;
       }
 
-      return Response::json($result);
+      return Response::json( $result );
     } catch(ErrorException $error) {
-      return Response::text( "500 - InternalError", 500 );
+      return Response::json( "500 - InternalError", 500 );
     }
   }
 }
