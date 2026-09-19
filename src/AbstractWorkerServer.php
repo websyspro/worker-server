@@ -69,9 +69,11 @@ abstract class AbstractWorkerServer
     }
 
     if( file_exists( BASE_DIR . "server-config.php" )){
-      $serverTools = require_once BASE_DIR . "server-config.php";
-      if( $serverTools instanceof ServerTools ){
-        return $serverTools;
+      require_once BASE_DIR . "server-config.php";
+      if( defined( "SERVER_TOOLS" ) ){
+        return new ServerTools( 
+          ...SERVER_TOOLS
+        );
       }
     }
 
@@ -275,52 +277,55 @@ abstract class AbstractWorkerServer
 
   private function startMultiProcess(
   ): void {
-    Logger::info( "Master PID: " . getmypid());
-    Logger::info( "Porta: {$this->port}" );
-    Logger::info( "Workers: {$this->workers}" );
-    Logger::info( "Keep-Alive: {$this->keepAliveTimeout}s" );
-    Logger::info( "Max Requests: {$this->maxRequests}" );
-    Logger::info( "Server running on http://{$this->host}:{$this->port}" );
+    if( function_exists( "pcntl_fork" ) && function_exists( "pcntl_wait" ) && defined( "WNOHANG" )){
+      Logger::info( "Master PID: " . getmypid());
+      Logger::info( "Porta: {$this->port}" );
+      Logger::info( "Workers: {$this->workers}" );
+      Logger::info( "Keep-Alive: {$this->keepAliveTimeout}s" );
+      Logger::info( "Max Requests: {$this->maxRequests}" );
+      Logger::info( "Server running on http://{$this->host}:{$this->port}" );
 
-    for($i = 0; $i < $this->workers; $i++){
-      $pid = pcntl_fork();
-      
-      if( $pid === -1 ){
-        die("Falha ao criar worker $i\n");
-      }
-
-      if( $pid === 0 ){
-        $this->runWorker($i + 1);
-        exit(0);
-      }
-      
-      $this->pids[] = $pid;
-    }
-
-    // Loop do master — reinicia workers mortos automaticamente
-    while( true ){
-      $status = 0;
-      $pid = pcntl_wait(
-        $status, WNOHANG
-      );
-
-      if( $pid > 0 ){
-        $idx = array_search(
-          $pid, $this->pids
-        );
-
-        Logger::warn( "Worker PID $pid morreu, reiniciando..." );
-        $newPid = pcntl_fork();
+      for($i = 0; $i < $this->workers; $i++){
+        $pid = pcntl_fork();
         
-        if( $newPid === 0 ){
-          $this->runWorker($idx + 1);
+        if( $pid === -1 ){
+          die("Falha ao criar worker $i\n");
+        }
+
+        if( $pid === 0 ){
+          $this->runWorker($i + 1);
           exit(0);
         }
         
-        $this->pids[$idx] = $newPid;
+        $this->pids[] = $pid;
       }
 
-      sleep(1);
+      // Loop do master — reinicia workers mortos automaticamente
+      while( true ){
+        $status = 0;
+        $pid = pcntl_wait(
+          $status, WNOHANG
+        );
+
+        if( $pid > 0 ){
+          $idx = array_search(
+            $pid, $this->pids
+          );
+
+          Logger::warn( "Worker PID $pid morreu, reiniciando..." );
+          $newPid = pcntl_fork();
+          
+          if( $newPid === 0 ){
+            $this->runWorker($idx + 1);
+            exit(0);
+          }
+          
+          $this->pids[$idx] = $newPid;
+        }
+
+        sleep(1);
+      }
+
     }
   }
 }
