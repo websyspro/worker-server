@@ -1,6 +1,6 @@
 {
   "name": "websyspro/worker-server",
-  "version": "1.0.48",
+  "version": "1.0.49",
   "description": "Set of features in PHP for creating entitys for database",
   "minimum-stability": "dev",
   "prefer-stable": true,
@@ -12,7 +12,8 @@
     }
   },
   "scripts": {
-    "publish": "php vendor/bin/publish"
+    "publish": "php vendor/bin/publish",
+    "pub": "composer update && composer publish"
   },
   "authors": [
     {
