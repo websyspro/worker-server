@@ -318,7 +318,30 @@ extends AbstractWorkerServer
 
       return Response::json( $result );
     } catch(ErrorException $error) {
-      return Response::json( "500 - InternalError", 500 );
+      Logger::error( sprintf(
+        "%s in %s:%d",
+        $error->getMessage(),
+        $error->getFile(),
+        $error->getLine()
+      ));
+
+      return Response::json([ 
+        "statusCode" => 500,
+        "message"    => "Internal Server Error"
+      ], 500 );
+    } catch( \Throwable $error ) {
+      Logger::error( sprintf(
+        "[%s] %s in %s:%d",
+        get_class( $error ),
+        $error->getMessage(),
+        $error->getFile(),
+        $error->getLine()
+      ));
+
+      return Response::json([ 
+        "statusCode" => 500,
+        "message"    => "Internal Server Error"
+      ], 500 );
     }
   }
 }

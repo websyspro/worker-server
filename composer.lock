@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1d9a687e2887954d4442ac2e1461fec9",
+    "content-hash": "9a37e582a982aee2088e3834b82228d4",
     "packages": [
         {
             "name": "websyspro/arrowtosql",
-            "version": "1.0.11",
+            "version": "1.0.72",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/arrowtosql.git",
-                "reference": "b6157fb322279b2487b80e87b0cf1fed4c5b73d4"
+                "reference": "fe5c4da8e5e9d05a9f51bd57c5b4687fe8bf8e79"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/arrowtosql/zipball/b6157fb322279b2487b80e87b0cf1fed4c5b73d4",
-                "reference": "b6157fb322279b2487b80e87b0cf1fed4c5b73d4",
+                "url": "https://api.github.com/repos/websyspro/arrowtosql/zipball/fe5c4da8e5e9d05a9f51bd57c5b4687fe8bf8e79",
+                "reference": "fe5c4da8e5e9d05a9f51bd57c5b4687fe8bf8e79",
                 "shasum": ""
             },
             "require": {
@@ -30,6 +30,7 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
+                    "Websyspro\\Test\\": "test/",
                     "Websyspro\\ArrowToSql\\": "src/"
                 }
             },
@@ -46,22 +47,22 @@
             "description": "Convert Arrow FN into SQL queries",
             "support": {
                 "issues": "https://github.com/websyspro/arrowtosql/issues",
-                "source": "https://github.com/websyspro/arrowtosql/tree/1.0.11"
+                "source": "https://github.com/websyspro/arrowtosql/tree/1.0.72"
             },
-            "time": "2026-09-25T20:14:29+00:00"
+            "time": "2026-10-26T19:48:28+00:00"
         },
         {
             "name": "websyspro/connection",
-            "version": "1.0.8",
+            "version": "1.0.18",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/connection.git",
-                "reference": "39f7d62918e8823175c1aa725e03ed7363bacfe3"
+                "reference": "9760531304e8de6ecfd081d8967fd013ce1a3aee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/connection/zipball/39f7d62918e8823175c1aa725e03ed7363bacfe3",
-                "reference": "39f7d62918e8823175c1aa725e03ed7363bacfe3",
+                "url": "https://api.github.com/repos/websyspro/connection/zipball/9760531304e8de6ecfd081d8967fd013ce1a3aee",
+                "reference": "9760531304e8de6ecfd081d8967fd013ce1a3aee",
                 "shasum": ""
             },
             "require": {
@@ -87,22 +88,22 @@
             "description": "Connection to MySQL, PostgreSQL, and SQL Server databases",
             "support": {
                 "issues": "https://github.com/websyspro/connection/issues",
-                "source": "https://github.com/websyspro/connection/tree/1.0.8"
+                "source": "https://github.com/websyspro/connection/tree/1.0.18"
             },
-            "time": "2026-09-25T20:16:20+00:00"
+            "time": "2026-10-11T19:23:06+00:00"
         },
         {
             "name": "websyspro/devtools",
-            "version": "1.0.162",
+            "version": "1.0.164",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/devtools.git",
-                "reference": "13344b00fbb81991ddbbed96406db572940a1845"
+                "reference": "c4ba3a6e101432f6187b0ba079752787745edd2c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/devtools/zipball/13344b00fbb81991ddbbed96406db572940a1845",
-                "reference": "13344b00fbb81991ddbbed96406db572940a1845",
+                "url": "https://api.github.com/repos/websyspro/devtools/zipball/c4ba3a6e101432f6187b0ba079752787745edd2c",
+                "reference": "c4ba3a6e101432f6187b0ba079752787745edd2c",
                 "shasum": ""
             },
             "require": {
@@ -133,22 +134,22 @@
             "description": "Set of features for hot reloads during development",
             "support": {
                 "issues": "https://github.com/websyspro/devtools/issues",
-                "source": "https://github.com/websyspro/devtools/tree/1.0.162"
+                "source": "https://github.com/websyspro/devtools/tree/1.0.164"
             },
-            "time": "2026-09-25T20:08:35+00:00"
+            "time": "2026-10-26T19:19:41+00:00"
         },
         {
             "name": "websyspro/entity",
-            "version": "1.0.44",
+            "version": "1.0.112",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/entity.git",
-                "reference": "d739879e1eb39bc3a04bbac9c98baafd1993a5af"
+                "reference": "cf447f81ff3946cebd2ca18c5b6f1179dd4cf50c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/entity/zipball/d739879e1eb39bc3a04bbac9c98baafd1993a5af",
-                "reference": "d739879e1eb39bc3a04bbac9c98baafd1993a5af",
+                "url": "https://api.github.com/repos/websyspro/entity/zipball/cf447f81ff3946cebd2ca18c5b6f1179dd4cf50c",
+                "reference": "cf447f81ff3946cebd2ca18c5b6f1179dd4cf50c",
                 "shasum": ""
             },
             "require": {
@@ -175,9 +176,9 @@
             "description": "Library for managing controllers and services",
             "support": {
                 "issues": "https://github.com/websyspro/entity/issues",
-                "source": "https://github.com/websyspro/entity/tree/1.0.44"
+                "source": "https://github.com/websyspro/entity/tree/1.0.112"
             },
-            "time": "2026-09-25T20:14:56+00:00"
+            "time": "2026-10-26T19:27:05+00:00"
         },
         {
             "name": "websyspro/logger",
