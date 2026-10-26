@@ -9,6 +9,7 @@ class ServerTools
     public int $apiVersion,
     public int $keepAliveTimeout,
     public int $maxRequests,
-    public string $host = PHP_OS_FAMILY === 'Windows' ? 'localhost' : '0.0.0.0'
+    public string $host = PHP_OS_FAMILY === 'Windows' ? 'localhost' : '0.0.0.0',
+    public bool $isWorker = true
   ){}
 }

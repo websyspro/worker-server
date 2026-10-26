@@ -40,6 +40,7 @@ abstract class AbstractWorkerServer
   public int $port;
   public int $apiVersion;
   public int $workers;
+  public bool $isWorker;
   public int $keepAliveTimeout;
   public int $maxRequests;
   private mixed $server = null;
@@ -56,6 +57,7 @@ abstract class AbstractWorkerServer
     $this->apiVersion = $this->serverTools->apiVersion;
     $this->port = $this->serverTools->port;
     $this->host = $this->serverTools->host;
+    $this->isWorker = $this->serverTools->isWorker;
 
     /* define Workers 1 */
     $this->workers = max( 1, (int) shell_exec( "nproc" ));
@@ -236,6 +238,12 @@ abstract class AbstractWorkerServer
 
   public function start(
   ): void {
+    // Modo Apache/CGI — delega ao PHP nativo, sem socket próprio
+    if( $this->isWorker === false ){
+      $this->startApacheMode();
+      return;
+    }
+
     $this->server = stream_socket_server(
       "tcp://{$this->host}:{$this->port}", $errno, $errstr
     );
@@ -262,6 +270,46 @@ abstract class AbstractWorkerServer
     } else {
       $this->startMultiProcess();
     }
+  }
+
+  private function startApacheMode(): void {
+    // Monta a Request a partir das variáveis globais do Apache/PHP-FPM
+    $method  = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    $uri     = $_SERVER['REQUEST_URI']    ?? '/';
+    $headers = [];
+
+    foreach( $_SERVER as $key => $value ){
+      if( str_starts_with( $key, 'HTTP_' ) ){
+        $name = str_replace( '_', '-', strtolower( substr( $key, 5 ) ) );
+        $headers[ $name ] = $value;
+      }
+    }
+
+    $body          = file_get_contents( 'php://input' ) ?: '';
+    $contentType   = $_SERVER['CONTENT_TYPE'] ?? '';
+    $contentLength = strlen( $body );
+
+    // Monta buffer no formato que Request já sabe parsear
+    $firstLine = "$method $uri HTTP/1.1";
+    $rawHeaders = "Content-Type: $contentType\r\nContent-Length: $contentLength";
+    $buffer     = "$firstLine\r\n$rawHeaders\r\n\r\n$body";
+
+    $parsed = [
+      "firstLine" => $firstLine,
+      "headers"   => $headers,
+      "body"      => $body,
+      "remaining" => ""
+    ];
+
+    $request  = new Request( $parsed );
+    $response = $this->handleRequest( $request );
+
+    // Envia response via Apache
+    http_response_code( $response->getStatus() );
+    foreach( $response->getHeaders() as $name => $value ){
+      header( "$name: $value" );
+    }
+    echo $response->getBody();
   }
 
   private function startSingleProcess(): void

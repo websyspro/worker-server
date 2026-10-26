@@ -59,6 +59,18 @@ class Response
     return $this;
   }
 
+  public function getStatus(): int {
+    return $this->status;
+  }
+
+  public function getBody(): string {
+    return $this->body;
+  }
+
+  public function getHeaders(): array {
+    return $this->headers;
+  }
+
   public function build(
     bool $keepAlive
   ): string {

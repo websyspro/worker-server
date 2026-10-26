@@ -8,6 +8,7 @@ use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
+use Throwable;
 use Websyspro\WorkerServer\Enums\RequestMethod;
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Container;
@@ -306,10 +307,7 @@ extends AbstractWorkerServer
 
       [ $handler, $params ] = $match;
       $result = $handler( 
-        ...$this->resolveArgs(
-          $handler, 
-          $request->withParams( $params )
-        )
+        ...$this->resolveArgs( $handler, $request->withParams( $params ))
       );
 
       if( $result instanceof Response ){
@@ -317,7 +315,7 @@ extends AbstractWorkerServer
       }
 
       return Response::json( $result );
-    } catch(ErrorException $error) {
+    } catch( ErrorException $error) {
       Logger::error( sprintf(
         "%s in %s:%d",
         $error->getMessage(),
@@ -326,10 +324,9 @@ extends AbstractWorkerServer
       ));
 
       return Response::json([ 
-        "statusCode" => 500,
-        "message"    => "Internal Server Error"
+        "message" => "Internal Server Error"
       ], 500 );
-    } catch( \Throwable $error ) {
+    } catch( Throwable $error ) {
       Logger::error( sprintf(
         "[%s] %s in %s:%d",
         get_class( $error ),
@@ -339,8 +336,7 @@ extends AbstractWorkerServer
       ));
 
       return Response::json([ 
-        "statusCode" => 500,
-        "message"    => "Internal Server Error"
+        "message" => "Internal Server Error"
       ], 500 );
     }
   }
