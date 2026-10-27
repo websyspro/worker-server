@@ -28,7 +28,7 @@ class Response
     int $status = 200
   ): Response {
     return new Response( 
-      $status, Response::jsonRequest( $content, $status < 200 ), [
+      $status, Response::jsonRequest( $content, $status >= 200 && $status < 300 ), [
         "Content-Type" => "application/json",
       ]
     );

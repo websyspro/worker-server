@@ -33,6 +33,12 @@ class Logger
 
     private static function log(string $level, string $color, string $message): void
     {
+        // No modo Apache (isWorker=false), logs vão para error_log em vez de stdout
+        if( defined('SERVER_TOOLS') && isset( SERVER_TOOLS['isWorker'] ) && SERVER_TOOLS['isWorker'] === false ){
+            error_log( "[$level] $message" );
+            return;
+        }
+
         $now  = microtime(true);
         $diff = static::$lastTime > 0
             ? round(($now - static::$lastTime) * 1000)
