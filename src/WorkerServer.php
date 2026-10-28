@@ -24,6 +24,10 @@ use Websyspro\WorkerServer\Decorators\Body;
 use Websyspro\WorkerServer\Decorators\Query;
 use Websyspro\WorkerServer\Decorators\Param;
 use Websyspro\WorkerServer\Decorators\File;
+use Websyspro\WorkerServer\Decorators\Authenticate;
+use Websyspro\WorkerServer\Decorators\AllowAnonymous;
+use Websyspro\WorkerServer\Interfaces\IAuthenticationHandler;
+use Websyspro\WorkerServer\Middleware;
 use function strtoupper;
 use function explode;
 use function preg_match;
@@ -38,22 +42,39 @@ extends AbstractWorkerServer
 {
   private array $routers = [];
   private string $prefix;
+  private IAuthenticationHandler $authHandler;
 
   public function __construct(
+    IAuthenticationHandler|null $authHandler = null
   ){
     parent::__construct();
     $this->prefix = sprintf(
       "/v%s", $this->apiVersion
     );
+    $this->authHandler = $authHandler;
+  }
+
+  public function setAuthenticationHandler(
+    IAuthenticationHandler $handler
+  ): WorkerServer {
+    $this->authHandler = $handler;
+    return $this;
   }
 
   private function registerRouter(
-    string $method, string $path, Closure $handler
+    string $method, string $path, Closure $handler, array $metadata = []
   ): WorkerServer {
-    $this->routers[ 
-      sprintf( "%s %s%s", 
-        strtoupper( $method ), $this->prefix, $path
-    )] = $handler;
+    $key = sprintf( "%s %s%s", 
+      strtoupper( $method ), $this->prefix, $path
+    );
+    
+    $this->routers[ $key ] = [
+      'handler' => $handler,
+      'requiresAuth' => $metadata['requiresAuth'] ?? false,
+      'allowAnonymous' => $metadata['allowAnonymous'] ?? false,
+      'middlewares' => $metadata['middlewares'] ?? [],
+    ];
+    
     return $this;
   }
 
@@ -62,7 +83,7 @@ extends AbstractWorkerServer
     string $requestPath,
     array $paramNames = []
   ): array|null {
-    foreach ($this->routers as $key => $handler) {
+    foreach ($this->routers as $key => $routeData) {
       [ $routeMethod, $routePath ] = explode(
         " ", $key, 2
       );
@@ -85,7 +106,14 @@ extends AbstractWorkerServer
 
       // $values[0] e o match completo, params comecam em [1]
       $params = array_combine( $paramNames, array_slice( $values, 1 )) ?: [];
-      return [ $handler, $params ];
+      
+      return [ 
+        $routeData['handler'], 
+        $params,
+        $routeData['requiresAuth'],
+        $routeData['allowAnonymous'],
+        $routeData['middlewares']
+      ];
     }
 
     return null;
@@ -194,13 +222,50 @@ extends AbstractWorkerServer
       return $this;
     }
 
+    // Coleta middlewares da classe
+    $classMiddlewares = [];
+    foreach ($reflection->getAttributes() as $attribute) {
+      $attrClass = $attribute->getName();
+      if (is_subclass_of($attrClass, Middleware::class)) {
+        $classMiddlewares[] = $attrClass;
+      }
+    }
+
+    // Verifica se o controller tem o atributo Authenticate
+    $authenticateAttr = $reflection->getAttributes(Authenticate::class)[0] ?? null;
+    $requiresAuth = $authenticateAttr !== null;
+
     $controllerPath = '/' . trim($controllerAttr->newInstance()->prefix, '/');
     $basePath = $modulePrefix . $controllerPath;
     $instance = Container::make($controllerClass);
     $httpAttrs = [Get::class, Post::class, Put::class, Patch::class, Delete::class];
 
-    Logger::info("Controller -> {$reflection->getShortName()}");
+    Logger::info("Controller -> {$reflection->getShortName()}" . ($requiresAuth ? " [Protected]" : ""));
+    
     foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+      // Verifica se o metodo tem AllowAnonymous
+      $allowAnonymousAttr = $method->getAttributes(AllowAnonymous::class)[0] ?? null;
+      $allowAnonymous = $allowAnonymousAttr !== null;
+
+      // Coleta middlewares do método
+      $methodMiddlewares = [];
+      foreach ($method->getAttributes() as $attribute) {
+        $attrClass = $attribute->getName();
+        if (is_subclass_of($attrClass, Middleware::class)) {
+          $methodMiddlewares[] = $attrClass;
+        }
+      }
+
+      // Combina middlewares: classe primeiro, depois método
+      $middlewares = array_merge($classMiddlewares, $methodMiddlewares);
+
+      // Se AllowAnonymous está presente, remove Authenticate da pilha
+      if ($allowAnonymous) {
+        $middlewares = array_filter($middlewares, function($mw) {
+          return $mw !== Authenticate::class;
+        });
+      }
+
       foreach ($httpAttrs as $attrClass) {
         $attrs = $method->getAttributes($attrClass);
         if( empty( $attrs )){
@@ -212,7 +277,19 @@ extends AbstractWorkerServer
         $fullPath = $basePath . ($subPath === '/' ? '' : $subPath);
         $handler = Closure::fromCallable([$instance, $method->getName()]);
 
-        $this->registerRouter($httpMethod, $fullPath, $handler);
+        $metadata = [
+          'requiresAuth' => $requiresAuth,
+          'allowAnonymous' => $allowAnonymous,
+          'middlewares' => array_values($middlewares), // Re-indexa o array
+        ];
+
+        $this->registerRouter($httpMethod, $fullPath, $handler, $metadata);
+        
+        $authStatus = $requiresAuth 
+          ? ($allowAnonymous ? " [Public]" : " [Protected]") 
+          : "";
+        
+        Logger::info("  {$httpMethod} {$fullPath}{$authStatus}");
       }
     }
 
@@ -290,6 +367,33 @@ extends AbstractWorkerServer
     return $args;
   }
 
+  private function executeMiddlewareStack(
+    array $middlewares,
+    Request $request,
+    Closure $finalHandler
+  ): Response {
+    // Se não há middlewares, executa direto o handler
+    if (empty($middlewares)) {
+      return $finalHandler($request);
+    }
+
+    // Cria a pilha de execução de trás para frente
+    $next = $finalHandler;
+    
+    foreach (array_reverse($middlewares) as $middlewareClass) {
+      $currentNext = $next;
+      $middlewareInstance = Container::make($middlewareClass);
+      
+      $next = function(Request $req) use ($middlewareInstance, $currentNext) {
+        $result = $middlewareInstance->execute($req, $currentNext);
+        // Se retornou Response, retorna. Se null, continua
+        return $result ?? $currentNext($req);
+      };
+    }
+
+    return $next($request);
+  }
+
   protected function handleRequest(
     Request $request
   ): Response {
@@ -305,16 +409,24 @@ extends AbstractWorkerServer
         );
       }
 
-      [ $handler, $params ] = $match;
-      $result = $handler( 
-        ...$this->resolveArgs( $handler, $request->withParams( $params ))
-      );
+      [ $handler, $params, $requiresAuth, $allowAnonymous, $middlewares ] = $match;
 
-      if( $result instanceof Response ){
-        return $result;
-      }
+      // Cria o handler final que será executado após todos os middlewares
+      $finalHandler = function(Request $req) use ($handler, $params) {
+        $result = $handler( 
+          ...$this->resolveArgs( $handler, $req->withParams( $params ))
+        );
 
-      return Response::json( $result );
+        if( $result instanceof Response ){
+          return $result;
+        }
+
+        return Response::json( $result );
+      };
+
+      // Executa a pilha de middlewares
+      return $this->executeMiddlewareStack($middlewares, $request, $finalHandler);
+
     } catch( ErrorException $error) {
       Logger::error( sprintf(
         "%s in %s:%d",
