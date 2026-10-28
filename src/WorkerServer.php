@@ -42,7 +42,7 @@ extends AbstractWorkerServer
 {
   private array $routers = [];
   private string $prefix;
-  private IAuthenticationHandler $authHandler;
+  private IAuthenticationHandler|null $authHandler;
 
   public function __construct(
     IAuthenticationHandler|null $authHandler = null
