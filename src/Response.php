@@ -59,6 +59,13 @@ class Response
     return $this;
   }
 
+  public function setHeader(
+    string $key, string $value
+  ): Response {
+    $this->headers[ $key ] = $value;
+    return $this;
+  }
+
   public function getStatus(): int {
     return $this->status;
   }
@@ -97,8 +104,9 @@ class Response
       401 => 'Unauthorized',
       403 => 'Forbidden',
       404 => 'Not Found',
+      429 => 'Too Many Requests',
       500 => 'Internal Server Error',
-        default => 'OK',
+      default => 'OK',
     };
   }
 }

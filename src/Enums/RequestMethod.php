@@ -9,4 +9,5 @@ enum RequestMethod
   case PUT;
   case PATCH;
   case DELETE;
+  case OPTIONS;
 }
