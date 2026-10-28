@@ -1,11 +1,11 @@
 <?php
 
-namespace Websyspro\WorkerServer\Decorators;
+namespace Websyspro\WorkerServer\Decorators\Requests;
 
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PARAMETER)]
-class Param
+class File
 {
   public function __construct(
     public readonly string $key = ""

@@ -1,6 +1,6 @@
 <?php
 
-namespace Websyspro\WorkerServer\Decorators;
+namespace Websyspro\WorkerServer\Decorators\Requests;
 
 use Attribute;
 

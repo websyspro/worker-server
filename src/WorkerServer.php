@@ -20,12 +20,12 @@ use Websyspro\WorkerServer\Decorators\Post;
 use Websyspro\WorkerServer\Decorators\Put;
 use Websyspro\WorkerServer\Decorators\Patch;
 use Websyspro\WorkerServer\Decorators\Delete;
-use Websyspro\WorkerServer\Decorators\Body;
-use Websyspro\WorkerServer\Decorators\Query;
-use Websyspro\WorkerServer\Decorators\Param;
-use Websyspro\WorkerServer\Decorators\File;
-use Websyspro\WorkerServer\Decorators\Authenticate;
-use Websyspro\WorkerServer\Decorators\AllowAnonymous;
+use Websyspro\WorkerServer\Decorators\Requests\Body;
+use Websyspro\WorkerServer\Decorators\Requests\Query;
+use Websyspro\WorkerServer\Decorators\Requests\Param;
+use Websyspro\WorkerServer\Decorators\Requests\File;
+use Websyspro\WorkerServer\Decorators\Middlewares\Authenticate;
+use Websyspro\WorkerServer\Decorators\Middlewares\AllowAnonymous;
 use Websyspro\WorkerServer\Interfaces\IAuthenticationHandler;
 use Websyspro\WorkerServer\Middleware;
 use function strtoupper;
@@ -43,6 +43,7 @@ extends AbstractWorkerServer
   private array $routers = [];
   private string $prefix;
   private IAuthenticationHandler|null $authHandler;
+  private array $globalMiddlewares = [];
 
   public function __construct(
     IAuthenticationHandler|null $authHandler = null
@@ -58,6 +59,28 @@ extends AbstractWorkerServer
     IAuthenticationHandler $handler
   ): WorkerServer {
     $this->authHandler = $handler;
+    return $this;
+  }
+
+  /**
+   * Registra um ou mais middlewares globais que serão executados em todas as rotas
+   * 
+   * @param mixed ...$middlewares Classes que estendem Middleware
+   * @return WorkerServer
+   */
+  public function use(mixed ...$middlewares): WorkerServer
+  {
+    foreach ($middlewares as $middlewareClass) {
+      if (!is_string($middlewareClass) || !is_subclass_of($middlewareClass, Middleware::class)) {
+        throw new \InvalidArgumentException(
+          "Cada middleware deve ser uma string de classe que estende Middleware"
+        );
+      }
+
+      $this->globalMiddlewares[] = $middlewareClass;
+      Logger::info("Global Middleware -> " . (new ReflectionClass($middlewareClass))->getShortName());
+    }
+    
     return $this;
   }
 
@@ -411,6 +434,10 @@ extends AbstractWorkerServer
 
       [ $handler, $params, $requiresAuth, $allowAnonymous, $middlewares ] = $match;
 
+      // Combina middlewares globais + middlewares da rota
+      // Ordem: globais primeiro, depois os da rota
+      $allMiddlewares = array_merge($this->globalMiddlewares, $middlewares);
+
       // Cria o handler final que será executado após todos os middlewares
       $finalHandler = function(Request $req) use ($handler, $params) {
         $result = $handler( 
@@ -424,8 +451,8 @@ extends AbstractWorkerServer
         return Response::json( $result );
       };
 
-      // Executa a pilha de middlewares
-      return $this->executeMiddlewareStack($middlewares, $request, $finalHandler);
+      // Executa a pilha de middlewares (globais + rota)
+      return $this->executeMiddlewareStack($allMiddlewares, $request, $finalHandler);
 
     } catch( ErrorException $error) {
       Logger::error( sprintf(
