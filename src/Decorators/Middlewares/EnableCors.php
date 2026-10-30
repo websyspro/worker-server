@@ -3,6 +3,7 @@
 namespace Websyspro\WorkerServer\Decorators\Middlewares;
 
 use Attribute;
+use Closure;
 use Websyspro\WorkerServer\Middleware;
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Response;
@@ -18,8 +19,10 @@ class EnableCors extends Middleware
     private readonly int $maxAge = 86400 // 24 horas
   ){}
 
-  public function execute(Request $request, callable $next): Response|null
-  {
+  public function execute(
+    Request $request, 
+    Closure $next
+  ): Response|null {
     // Se for requisição OPTIONS (preflight), responde imediatamente
     if ($request->method === 'OPTIONS') {
       return $this->buildCorsResponse(new Response(), $request);

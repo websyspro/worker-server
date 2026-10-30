@@ -2,19 +2,23 @@
 
 namespace Websyspro\WorkerServer\Decorators\Middlewares;
 
-use Attribute;
-use Throwable;
 use Websyspro\WorkerServer\Middleware;
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Response;
 use Websyspro\WorkerServer\Container;
 use Websyspro\WorkerServer\Interfaces\IAuthenticationHandler;
+use Attribute;
+use Throwable;
+use Closure;
 
 #[Attribute(Attribute::TARGET_CLASS)]
-class Authenticate extends Middleware
+class Authenticate 
+extends Middleware
 {
-  public function execute(Request $request, callable $next): Response|null
-  {
+  public function execute(
+    Request $request, 
+    Closure $next
+  ): Response|null {
     // Tenta obter o AuthenticationHandler do Container
     try {
       $authHandler = Container::make(IAuthenticationHandler::class);

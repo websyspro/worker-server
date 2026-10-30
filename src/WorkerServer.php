@@ -2,13 +2,7 @@
 
 namespace Websyspro\WorkerServer;
 
-use Closure;
-use ErrorException;
-use ReflectionClass;
-use ReflectionFunction;
-use ReflectionMethod;
-use ReflectionNamedType;
-use Throwable;
+use InvalidArgumentException;
 use Websyspro\WorkerServer\Enums\RequestMethod;
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Container;
@@ -36,6 +30,15 @@ use function array_keys;
 use function array_combine;
 use function array_slice;
 use function sprintf;
+use function is_array;
+use function is_string;
+use ErrorException;
+use ReflectionClass;
+use ReflectionFunction;
+use ReflectionMethod;
+use ReflectionNamedType;
+use Throwable;
+use Closure;
 
 class WorkerServer 
 extends AbstractWorkerServer
@@ -62,23 +65,18 @@ extends AbstractWorkerServer
     return $this;
   }
 
-  /**
-   * Registra um ou mais middlewares globais que serão executados em todas as rotas
-   * 
-   * @param mixed ...$middlewares Classes que estendem Middleware
-   * @return WorkerServer
-   */
-  public function use(mixed ...$middlewares): WorkerServer
-  {
-    foreach ($middlewares as $middlewareClass) {
-      if (!is_string($middlewareClass) || !is_subclass_of($middlewareClass, Middleware::class)) {
-        throw new \InvalidArgumentException(
+  public function use(
+    mixed ...$middlewares
+  ): WorkerServer {
+    foreach ( $middlewares as $middlewareClass ) {
+      if (!is_string( $middlewareClass ) || !is_subclass_of( $middlewareClass, Middleware::class )) {
+        throw new InvalidArgumentException(
           "Cada middleware deve ser uma string de classe que estende Middleware"
         );
       }
 
       $this->globalMiddlewares[] = $middlewareClass;
-      Logger::info("Global Middleware -> " . (new ReflectionClass($middlewareClass))->getShortName());
+      Logger::info( "Global Middleware -> " . (new ReflectionClass($middlewareClass))->getShortName());
     }
     
     return $this;
@@ -115,11 +113,9 @@ extends AbstractWorkerServer
         continue;
       }
 
-      // Extrai nomes dos params da rota (:id, :postId, ...)
       preg_match_all( "#:([a-zA-Z_]+)#", $routePath, $matches );
       $paramNames = $matches[1];
 
-      // Converte a rota em regex: /users/:id => /users/([^/]+)
       $pattern = preg_replace( "#:([a-zA-Z_]+)#", '([^/]+)', $routePath);
       $pattern = '#^' . $pattern . '$#';
 
@@ -127,7 +123,6 @@ extends AbstractWorkerServer
         continue;
       }
 
-      // $values[0] e o match completo, params comecam em [1]
       $params = array_combine( $paramNames, array_slice( $values, 1 )) ?: [];
       
       return [ 
@@ -245,7 +240,6 @@ extends AbstractWorkerServer
       return $this;
     }
 
-    // Coleta middlewares da classe
     $classMiddlewares = [];
     foreach ($reflection->getAttributes() as $attribute) {
       $attrClass = $attribute->getName();
@@ -254,7 +248,6 @@ extends AbstractWorkerServer
       }
     }
 
-    // Verifica se o controller tem o atributo Authenticate
     $authenticateAttr = $reflection->getAttributes(Authenticate::class)[0] ?? null;
     $requiresAuth = $authenticateAttr !== null;
 
@@ -266,11 +259,9 @@ extends AbstractWorkerServer
     Logger::info("Controller -> {$reflection->getShortName()}" . ($requiresAuth ? " [Protected]" : ""));
     
     foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-      // Verifica se o metodo tem AllowAnonymous
       $allowAnonymousAttr = $method->getAttributes(AllowAnonymous::class)[0] ?? null;
       $allowAnonymous = $allowAnonymousAttr !== null;
 
-      // Coleta middlewares do método
       $methodMiddlewares = [];
       foreach ($method->getAttributes() as $attribute) {
         $attrClass = $attribute->getName();
@@ -279,10 +270,11 @@ extends AbstractWorkerServer
         }
       }
 
-      // Combina middlewares: classe primeiro, depois método
-      $middlewares = array_merge($classMiddlewares, $methodMiddlewares);
+      $middlewares = [
+        ...$classMiddlewares, 
+        ...$methodMiddlewares
+      ];
 
-      // Se AllowAnonymous está presente, remove Authenticate da pilha
       if ($allowAnonymous) {
         $middlewares = array_filter($middlewares, function($mw) {
           return $mw !== Authenticate::class;
@@ -303,7 +295,7 @@ extends AbstractWorkerServer
         $metadata = [
           'requiresAuth' => $requiresAuth,
           'allowAnonymous' => $allowAnonymous,
-          'middlewares' => array_values($middlewares), // Re-indexa o array
+          'middlewares' => array_values($middlewares)
         ];
 
         $this->registerRouter($httpMethod, $fullPath, $handler, $metadata);
@@ -337,13 +329,11 @@ extends AbstractWorkerServer
     foreach( $reflection->getParameters() as $param ){
       $type = $param->getType();
 
-      // Request puro — injeta direto
       if( $type instanceof ReflectionNamedType && $type->getName() === Request::class ){
         $args[] = $request;
         continue;
       }
 
-      // Response — injeta uma instância nova (o handler pode populá-la e retorná-la)
       if( $type instanceof ReflectionNamedType && $type->getName() === Response::class ){
         $args[] = new Response();
         continue;
@@ -367,14 +357,11 @@ extends AbstractWorkerServer
         $modelClass = $type instanceof ReflectionNamedType ? $type->getName() : null;
 
         if( $key !== "" ){
-          // key informada — extrai campo especifico da fonte
           $value = is_array($source) ? ($source[$key] ?? null) : (is_object($source) ? ($source->$key ?? null) : null);
           $args[] = $value;
         } elseif ( $modelClass && is_subclass_of( $modelClass, Model::class )){
-          // sem key + Model — hidrata o model com toda a fonte
           $args[] = $modelClass::from($source);
         } else {
-          // sem key + tipo primitivo — passa a fonte inteira
           $args[] = $source;
         }
 
@@ -395,12 +382,10 @@ extends AbstractWorkerServer
     Request $request,
     Closure $finalHandler
   ): Response {
-    // Se não há middlewares, executa direto o handler
     if (empty($middlewares)) {
       return $finalHandler($request);
     }
 
-    // Cria a pilha de execução de trás para frente
     $next = $finalHandler;
     
     foreach (array_reverse($middlewares) as $middlewareClass) {
@@ -409,7 +394,6 @@ extends AbstractWorkerServer
       
       $next = function(Request $req) use ($middlewareInstance, $currentNext) {
         $result = $middlewareInstance->execute($req, $currentNext);
-        // Se retornou Response, retorna. Se null, continua
         return $result ?? $currentNext($req);
       };
     }
@@ -434,11 +418,8 @@ extends AbstractWorkerServer
 
       [ $handler, $params, $requiresAuth, $allowAnonymous, $middlewares ] = $match;
 
-      // Combina middlewares globais + middlewares da rota
-      // Ordem: globais primeiro, depois os da rota
       $allMiddlewares = array_merge($this->globalMiddlewares, $middlewares);
 
-      // Cria o handler final que será executado após todos os middlewares
       $finalHandler = function(Request $req) use ($handler, $params) {
         $result = $handler( 
           ...$this->resolveArgs( $handler, $req->withParams( $params ))
@@ -451,9 +432,7 @@ extends AbstractWorkerServer
         return Response::json( $result );
       };
 
-      // Executa a pilha de middlewares (globais + rota)
       return $this->executeMiddlewareStack($allMiddlewares, $request, $finalHandler);
-
     } catch( ErrorException $error) {
       Logger::error( sprintf(
         "%s in %s:%d",

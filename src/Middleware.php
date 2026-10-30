@@ -4,15 +4,12 @@ namespace Websyspro\WorkerServer;
 
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Response;
+use Closure;
 
 abstract class Middleware
 {
-  /**
-   * Executa o middleware
-   * 
-   * @param Request $request
-   * @param callable $next Próximo middleware ou handler da rota
-   * @return Response|null Retorna Response para interromper, null para continuar
-   */
-  abstract public function execute(Request $request, callable $next): Response|null;
+  abstract public function execute(
+    Request $request, 
+    Closure $next
+  ): Response|null;
 }
