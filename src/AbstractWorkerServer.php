@@ -257,14 +257,6 @@ abstract class AbstractWorkerServer
       false
     );
 
-    foreach ($this->getRoutes() as $route) {
-      [ $method, $path ] = explode(
-        " ", $route, 2
-      );
-
-      Logger::info( "$method $path" );
-    }
-
     if( PHP_OS_FAMILY === "Windows" ){
       $this->startSingleProcess();
     } else {
