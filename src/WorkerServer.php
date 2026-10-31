@@ -14,7 +14,6 @@ use Websyspro\WorkerServer\Decorators\Requests\Query;
 use Websyspro\WorkerServer\Decorators\Requests\Param;
 use Websyspro\WorkerServer\Decorators\Requests\File;
 use Websyspro\WorkerServer\Decorators\Middlewares\Authenticate;
-use Websyspro\WorkerServer\Interfaces\IAuthenticationHandler;
 use Websyspro\WorkerServer\Middleware;
 use function strtoupper;
 use function explode;
@@ -36,40 +35,30 @@ use Closure;
 class WorkerServer 
 extends AbstractWorkerServer
 {
-  private array $routers = [];
   private string $prefix;
-  private IAuthenticationHandler|null $authHandler;
-  private array $globalMiddlewares = [];
+  private array $routers = [];
+  private array $middlewares = [];
 
   public function __construct(
-    IAuthenticationHandler|null $authHandler = null
   ){
     parent::__construct();
     $this->prefix = sprintf(
       "/v%s", $this->apiVersion
     );
-    $this->authHandler = $authHandler;
-  }
-
-  public function setAuthenticationHandler(
-    IAuthenticationHandler $handler
-  ): WorkerServer {
-    $this->authHandler = $handler;
-    return $this;
   }
 
   public function use(
     mixed ...$middlewares
   ): WorkerServer {
-    foreach ( $middlewares as $middlewareClass ) {
-      if (!is_string( $middlewareClass ) || !is_subclass_of( $middlewareClass, Middleware::class )) {
+    foreach ( $middlewares as $middleware ) {
+      if (!is_string( $middleware ) || !is_subclass_of( $middleware, Middleware::class )) {
         throw new InvalidArgumentException(
           "Cada middleware deve ser uma string de classe que estende Middleware"
         );
       }
 
-      $this->globalMiddlewares[] = $middlewareClass;
-      Logger::info( "Global Middleware -> " . (new ReflectionClass($middlewareClass))->getShortName());
+      $this->middlewares[] = $middleware;
+      Logger::info( "Global Middleware -> " . (new ReflectionClass($middleware))->getShortName());
     }
     
     return $this;
@@ -129,7 +118,7 @@ extends AbstractWorkerServer
 
   public function get(
     string $path, 
-    Closure $handler
+    Closure|array $handler
   ): WorkerServer {
     return $this->registerRouter(
       RequestMethod::GET->name, $path, $handler
@@ -138,7 +127,7 @@ extends AbstractWorkerServer
 
   public function post(
     string $path, 
-    Closure $handler
+    Closure|array $handler
   ): WorkerServer {
     return $this->registerRouter(
       RequestMethod::POST->name, $path, $handler
@@ -147,7 +136,7 @@ extends AbstractWorkerServer
 
   public function put(
     string $path, 
-    Closure $handler
+    Closure|array $handler
   ): WorkerServer {
     return $this->registerRouter(
       RequestMethod::PUT->name, $path, $handler
@@ -156,7 +145,7 @@ extends AbstractWorkerServer
 
   public function patch(
     string $path,
-    Closure $handler
+    Closure|array $handler
   ): WorkerServer {
     return $this->registerRouter(
       RequestMethod::PATCH->name, $path, $handler
@@ -165,7 +154,7 @@ extends AbstractWorkerServer
 
   public function delete(
     string $path,
-    Closure $handler
+    Closure|array $handler
   ): WorkerServer {
     return $this->registerRouter(
       RequestMethod::DELETE->name, $path, $handler
@@ -177,14 +166,6 @@ extends AbstractWorkerServer
   ): WorkerServer {
     foreach( $modules as $strClass ){
       $refClass = new ReflectionClass( $strClass );
-      // $refClassAttrs = $refClass->getAttributes( 
-      //   Module::class
-      // )[0] ?? null;
-
-      // if( $moduleAttr === null ){
-      //   continue;
-      // }
-
       $module = Module::getInstance( $refClass );
       $prefix = Module::getPrefix( $refClass );
 
@@ -342,6 +323,12 @@ extends AbstractWorkerServer
     return $args;
   }
 
+  private function addMiddlewares(
+    array $middlewares
+  ): array {
+    return [ ...$this->middlewares, ...$middlewares ];
+  }
+
   private function executeMiddlewareStack(
     array $middlewares,
     Request $request,
@@ -352,7 +339,7 @@ extends AbstractWorkerServer
     }
 
     $next = $nextHandler;
-    foreach( $middlewares as $middleware ){
+    foreach( $this->addMiddlewares( $middlewares ) as $middleware ){
       $currentNext = $next;
       $middlewareInstance = Container::make( $middleware );
 
@@ -383,7 +370,7 @@ extends AbstractWorkerServer
       [ $handler, $params, $middlewares 
       ] = $match;
 
-      $nextHandler = function( Request $req ) use ($handler, $params) {
+      $nextHandler = function( Request $request ) use ( $handler, $params ){
         [ $refClass, $refMethod 
         ] = $handler;
 
@@ -395,7 +382,7 @@ extends AbstractWorkerServer
 
         $result = $handler( 
           ...$this->resolveArgs( 
-            $handler, $req->withParams( $params )
+            $handler, $request->withParams( $params )
           )
         );
 

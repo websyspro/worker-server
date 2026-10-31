@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "88dff16c15e2be56cf8da01f9446288a",
+    "content-hash": "722432dafabfab20fd2911ae0f3045a7",
     "packages": [
         {
             "name": "websyspro/arrowtosql",
-            "version": "1.0.74",
+            "version": "1.0.75",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/arrowtosql.git",
-                "reference": "953feff5c545651d2a5fd9047f8adc9e9a2925a6"
+                "reference": "37c67391a04fb9d226394a81a73864d5cc7a414a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/arrowtosql/zipball/953feff5c545651d2a5fd9047f8adc9e9a2925a6",
-                "reference": "953feff5c545651d2a5fd9047f8adc9e9a2925a6",
+                "url": "https://api.github.com/repos/websyspro/arrowtosql/zipball/37c67391a04fb9d226394a81a73864d5cc7a414a",
+                "reference": "37c67391a04fb9d226394a81a73864d5cc7a414a",
                 "shasum": ""
             },
             "require": {
@@ -47,9 +47,9 @@
             "description": "Convert Arrow FN into SQL queries",
             "support": {
                 "issues": "https://github.com/websyspro/arrowtosql/issues",
-                "source": "https://github.com/websyspro/arrowtosql/tree/1.0.74"
+                "source": "https://github.com/websyspro/arrowtosql/tree/1.0.75"
             },
-            "time": "2026-10-31T00:12:20+00:00"
+            "time": "2026-10-31T21:04:45+00:00"
         },
         {
             "name": "websyspro/connection",
