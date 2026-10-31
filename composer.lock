@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "722432dafabfab20fd2911ae0f3045a7",
+    "content-hash": "fa3bc855ab863a3232a73f71d644223d",
     "packages": [
         {
             "name": "websyspro/arrowtosql",

@@ -61,6 +61,21 @@ class Controller
     return implode( "/", $paths );
   }
 
+  public static function getMiddlewares(
+    ReflectionMethod $refMethod,
+    array $controllerMiddlewares = []
+  ): array {
+    if( Controller::getMiddlewaresIsAllowAnonymous( $refMethod ) ){
+      $controllerMiddlewares = array_filter( 
+        $controllerMiddlewares, fn(string $middlewares) => (
+          $middlewares !== Authenticate::class
+        )
+      );
+    }
+
+    return array_values( $controllerMiddlewares );
+  }
+
   public static function getMiddlewaresFromController(
     ReflectionClass $refClass,
     array $middlewares = []
@@ -168,5 +183,5 @@ class Controller
   ): string {
     $refRequestType = new ReflectionClass( $requestType );
     return strtoupper( $refRequestType->getShortName());
-  }  
+  }
 }

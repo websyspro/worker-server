@@ -25,6 +25,7 @@ use function array_slice;
 use function sprintf;
 use function is_array;
 use function is_string;
+use function sizeof;
 use ErrorException;
 use ReflectionClass;
 use ReflectionFunction;
@@ -43,7 +44,7 @@ extends AbstractWorkerServer
   ){
     parent::__construct();
     $this->prefix = sprintf(
-      "/v%s", $this->apiVersion
+      "/api/v%s", $this->apiVersion
     );
   }
 
@@ -70,10 +71,10 @@ extends AbstractWorkerServer
     array $handler, 
     array $middlewares = []
   ): WorkerServer {
-    $key = sprintf( "%s %s/%s", 
-      strtoupper( $method ), $this->prefix, $path
-    );
-    
+    $key = empty( $path ) || $path === "/"
+      ? sprintf( "%s %s", strtoupper( $method ), $this->prefix )
+      : sprintf( "%s %s/%s", strtoupper( $method ), $this->prefix, trim( $path, "/" ) );
+
     $this->routers[ $key ] = [
       $handler, $middlewares,
     ];
@@ -118,46 +119,46 @@ extends AbstractWorkerServer
 
   public function get(
     string $path, 
-    Closure|array $handler
+    Closure $handler
   ): WorkerServer {
     return $this->registerRouter(
-      RequestMethod::GET->name, $path, $handler
+      RequestMethod::GET->name, $path, [ $handler ]
     );
   }
 
   public function post(
     string $path, 
-    Closure|array $handler
+    Closure $handler
   ): WorkerServer {
     return $this->registerRouter(
-      RequestMethod::POST->name, $path, $handler
+      RequestMethod::POST->name, $path, [ $handler ]
     );
   }
 
   public function put(
     string $path, 
-    Closure|array $handler
+    Closure $handler
   ): WorkerServer {
     return $this->registerRouter(
-      RequestMethod::PUT->name, $path, $handler
+      RequestMethod::PUT->name, $path, [ $handler ]
     );
   }
 
   public function patch(
     string $path,
-    Closure|array $handler
+    Closure $handler
   ): WorkerServer {
     return $this->registerRouter(
-      RequestMethod::PATCH->name, $path, $handler
+      RequestMethod::PATCH->name, $path, [ $handler ]
     );
   }
 
   public function delete(
     string $path,
-    Closure|array $handler
+    Closure $handler
   ): WorkerServer {
     return $this->registerRouter(
-      RequestMethod::DELETE->name, $path, $handler
+      RequestMethod::DELETE->name, $path, [ $handler ]
     );
   }
 
@@ -215,21 +216,11 @@ extends AbstractWorkerServer
     $controllerPaths[] = $prefix;
     $controllerPaths[] = $controllerPrefix;
 
-    $instance = Container::make($class);
-
     Logger::info("{$refClass->getShortName()}");
     
     foreach( Controller::getMethodsPublics( $refClass ) as $refMethod ) {
       foreach( Controller::getMiddlewaresFromMethod( $refMethod ) as $methodMiddleware ){
         $controllerMiddlewares[] = $methodMiddleware;  
-      }
-
-      if( Controller::getMiddlewaresIsAllowAnonymous( $refMethod ) ){
-        $controllerMiddlewares = array_filter( 
-          $controllerMiddlewares, fn(string $middlewares) => (
-            $middlewares !== Authenticate::class
-          )
-        );
       }
 
       foreach( Controller::getRequestTypes() as $requestType ){
@@ -242,13 +233,11 @@ extends AbstractWorkerServer
             $methdoPublicInstance
           );
 
-          $handler = Closure::fromCallable([$instance, $refMethod->getName()]);
-
           $this->registerRouter( 
             Controller::getRequestTypeName( $requestType ), 
             Controller::getJoinPahs( $controllerPaths ), 
             Controller::getHandler( $refClass, $refMethod ), 
-            $controllerMiddlewares
+            Controller::getMiddlewares( $refMethod, $controllerMiddlewares )
           );          
         }
       }
@@ -371,18 +360,23 @@ extends AbstractWorkerServer
       ] = $match;
 
       $nextHandler = function( Request $request ) use ( $handler, $params ){
-        [ $refClass, $refMethod 
-        ] = $handler;
+        if( sizeof( $handler ) === 2 ){
+          [ $refClass, $refMethod 
+          ] = $handler;
 
-        $handler = Closure::fromCallable([ 
-          Container::make( 
-            $refClass
-          ), $refMethod 
-        ]);
+          $handler = [
+            Closure::fromCallable([ 
+            Container::make( 
+                $refClass
+              ), $refMethod 
+            ])
+          ];
+        };
 
-        $result = $handler( 
+        [ $callableHandler ] = $handler;        
+        $result = $callableHandler( 
           ...$this->resolveArgs( 
-            $handler, $request->withParams( $params )
+            $callableHandler, $request->withParams( $params )
           )
         );
 
