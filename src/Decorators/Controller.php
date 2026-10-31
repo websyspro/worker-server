@@ -16,7 +16,7 @@ class Controller
 
   public static function getInstance(
     ReflectionClass $refClass   
-  ): Module|null {
+  ): Controller|null {
     $refClassAttrs = $refClass->getAttributes(
       Controller::class
     );
