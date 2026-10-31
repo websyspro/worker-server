@@ -236,27 +236,8 @@ extends AbstractWorkerServer
   ): WorkerServer {
     $refClass = new ReflectionClass( $class );
 
-    $refClass = new ReflectionClass( $class );
-
-    // $reflection = new ReflectionClass( $refClass );
-    // $controllerAttr = $reflection->getAttributes(
-    //   Controller::class
-    // )[0] ?? null;
-
-    // if( $controllerAttr === null ){
-    //   return $this;
-    // }
-
     $middlewares = Controller::getMiddlewares( $refClass );
-    // foreach ( $refClass->getAttributes() as $attribute ) {
-    //   $attrClass = $attribute->getName();
-    //   if (is_subclass_of($attrClass, Middleware::class)) {
-    //     $middlewares[] = $attrClass;
-    //   }
-    // }
-
-    $authenticateAttr = $refClass->getAttributes(Authenticate::class)[0] ?? null;
-    $requiresAuth = $authenticateAttr !== null;
+    $middlewareIsAuthenticate = Controller::getMiddlewaresIsAuthenticate( $refClass );
 
     $controllerPath = '/' . trim(Controller::getInstance($refClass)->prefix, '/');
     $basePath = '/' . $prefix . $controllerPath;
@@ -266,8 +247,7 @@ extends AbstractWorkerServer
     Logger::info("{$refClass->getShortName()}");
     
     foreach ( $refClass->getMethods( ReflectionMethod::IS_PUBLIC ) as $method ) {
-      $allowAnonymousAttr = $method->getAttributes(AllowAnonymous::class)[0] ?? null;
-      $allowAnonymous = $allowAnonymousAttr !== null;
+      $middlewareIsAllowAnonymous = Controller::getMiddlewaresIsAllowAnonymous( $method );
 
       $methodMiddlewares = [];
       foreach ($method->getAttributes() as $attribute) {
@@ -282,7 +262,7 @@ extends AbstractWorkerServer
         ...$methodMiddlewares
       ];
 
-      if ($allowAnonymous) {
+      if( $middlewareIsAllowAnonymous ){
         $middlewares = array_filter($middlewares, function($mw) {
           return $mw !== Authenticate::class;
         });
@@ -300,8 +280,8 @@ extends AbstractWorkerServer
         $handler = Closure::fromCallable([$instance, $method->getName()]);
 
         $metadata = [
-          'requiresAuth' => $requiresAuth,
-          'allowAnonymous' => $allowAnonymous,
+          'requiresAuth' => $middlewareIsAuthenticate,
+          'allowAnonymous' => $middlewareIsAllowAnonymous,
           'middlewares' => array_values( $middlewares )
         ];
 

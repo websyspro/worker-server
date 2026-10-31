@@ -2,6 +2,9 @@
 
 namespace Websyspro\WorkerServer\Decorators;
 
+use ReflectionMethod;
+use Websyspro\WorkerServer\Decorators\Middlewares\AllowAnonymous;
+use Websyspro\WorkerServer\Decorators\Middlewares\Authenticate;
 use Websyspro\WorkerServer\Middleware;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -51,4 +54,34 @@ class Controller
         array_values( $middlewares )
     );
   }
+
+  public static function getMiddlewaresIsAuthenticate(
+    ReflectionClass $refClass
+  ): bool {
+    $refClassAttrs = $refClass->getAttributes(
+      Authenticate::class
+    );
+
+    if( empty( $refClassAttrs )){
+      return false;
+    }
+
+    [ $authenticate ] = $refClassAttrs;
+    return $authenticate->getName() === Authenticate::class;
+  }
+  
+  public static function getMiddlewaresIsAllowAnonymous(
+    ReflectionMethod $refMethod
+  ): bool {
+    $refMethodAttrs = $refMethod->getAttributes(
+      AllowAnonymous::class
+    );
+
+    if( empty( $refMethodAttrs )){
+      return false;
+    }
+
+    [ $allowAnonymous ] = $refMethodAttrs;
+    return $allowAnonymous->getName() === AllowAnonymous::class;
+  }  
 }
