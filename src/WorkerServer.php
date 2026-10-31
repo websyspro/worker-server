@@ -245,21 +245,20 @@ extends AbstractWorkerServer
     //   return $this;
     // }
 
-    $middlewares = Controller::getMiddlewares( $refClass );
-
-    // foreach ( $reflection->getAttributes() as $attribute ) {
-    //   $attrClass = $attribute->getName();
-    //   if (is_subclass_of($attrClass, Middleware::class)) {
-    //     $middlewares[] = $attrClass;
-    //   }
-    // }
+    $middlewares = [];
+    foreach ( $refClass->getAttributes() as $attribute ) {
+      $attrClass = $attribute->getName();
+      if (is_subclass_of($attrClass, Middleware::class)) {
+        $middlewares[] = $attrClass;
+      }
+    }
 
     $authenticateAttr = $refClass->getAttributes(Authenticate::class)[0] ?? null;
     $requiresAuth = $authenticateAttr !== null;
 
-    $controllerPath = '/' . trim($refClass->newInstance()->prefix, '/');
+    $controllerPath = '/' . trim(Controller::getInstance($refClass)->prefix, '/');
     $basePath = '/' . $prefix . $controllerPath;
-    $instance = Container::make($refClass);
+    $instance = Container::make($class);
     $httpAttrs = [Get::class, Post::class, Put::class, Patch::class, Delete::class];
 
     Logger::info("{$refClass->getShortName()}");
