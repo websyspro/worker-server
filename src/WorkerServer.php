@@ -231,7 +231,7 @@ extends AbstractWorkerServer
 
   public function register(
     string $controllerClass, 
-    string|null $modulePrefix = null
+    string|null $prefix = null
   ): WorkerServer {
     $reflection = new ReflectionClass( $controllerClass );
     $controllerAttr = $reflection->getAttributes(
@@ -254,7 +254,7 @@ extends AbstractWorkerServer
     $requiresAuth = $authenticateAttr !== null;
 
     $controllerPath = '/' . trim($controllerAttr->newInstance()->prefix, '/');
-    $basePath = $modulePrefix . $controllerPath;
+    $basePath = '/' . $prefix . $controllerPath;
     $instance = Container::make($controllerClass);
     $httpAttrs = [Get::class, Post::class, Put::class, Patch::class, Delete::class];
 
