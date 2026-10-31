@@ -210,8 +210,8 @@ extends AbstractWorkerServer
           // $schema->applyForeignKeys($entityClass);
         }
 
-        foreach( $module->controllers as $controller ){
-          $this->register( $controller, $prefix );
+        foreach( $module->controllers as $class ){
+          $this->register( $class, $prefix );
         }        
       }
     }
@@ -230,10 +230,13 @@ extends AbstractWorkerServer
   }
 
   public function register(
-    string $controllerClass, 
-    string|null $prefix = null
+    string $class, 
+    string|null $prefix = null,
+    array|null $middlewares = []
   ): WorkerServer {
-    $reflection = new ReflectionClass( $controllerClass );
+    $refClass = new ReflectionClass( $class );
+
+    $reflection = new ReflectionClass( $refClass );
     $controllerAttr = $reflection->getAttributes(
       Controller::class
     )[0] ?? null;
@@ -242,20 +245,21 @@ extends AbstractWorkerServer
       return $this;
     }
 
-    $classMiddlewares = [];
-    foreach ($reflection->getAttributes() as $attribute) {
-      $attrClass = $attribute->getName();
-      if (is_subclass_of($attrClass, Middleware::class)) {
-        $classMiddlewares[] = $attrClass;
-      }
-    }
+    $middlewares = Controller::getMiddlewares( $refClass );
+
+    // foreach ( $reflection->getAttributes() as $attribute ) {
+    //   $attrClass = $attribute->getName();
+    //   if (is_subclass_of($attrClass, Middleware::class)) {
+    //     $middlewares[] = $attrClass;
+    //   }
+    // }
 
     $authenticateAttr = $reflection->getAttributes(Authenticate::class)[0] ?? null;
     $requiresAuth = $authenticateAttr !== null;
 
     $controllerPath = '/' . trim($controllerAttr->newInstance()->prefix, '/');
     $basePath = '/' . $prefix . $controllerPath;
-    $instance = Container::make($controllerClass);
+    $instance = Container::make($refClass);
     $httpAttrs = [Get::class, Post::class, Put::class, Patch::class, Delete::class];
 
     Logger::info("{$reflection->getShortName()}");
@@ -273,7 +277,7 @@ extends AbstractWorkerServer
       }
 
       $middlewares = [
-        ...$classMiddlewares, 
+        ...$middlewares, 
         ...$methodMiddlewares
       ];
 
