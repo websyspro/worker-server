@@ -256,7 +256,7 @@ extends AbstractWorkerServer
     $instance = Container::make($controllerClass);
     $httpAttrs = [Get::class, Post::class, Put::class, Patch::class, Delete::class];
 
-    Logger::info("Controller -> {$reflection->getShortName()}" . ($requiresAuth ? " [Protected]" : ""));
+    Logger::info("{$reflection->getShortName()}");
     
     foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
       $allowAnonymousAttr = $method->getAttributes(AllowAnonymous::class)[0] ?? null;
@@ -300,11 +300,7 @@ extends AbstractWorkerServer
 
         $this->registerRouter($httpMethod, $fullPath, $handler, $metadata);
         
-        $authStatus = $requiresAuth 
-          ? ($allowAnonymous ? " [Public]" : " [Protected]") 
-          : "";
-        
-        Logger::info("  {$httpMethod} {$fullPath}{$authStatus}");
+        Logger::info("Mapper {{$httpMethod} {$fullPath}}");
       }
     }
 
@@ -416,7 +412,7 @@ extends AbstractWorkerServer
         );
       }
 
-      [ $handler, $params, $requiresAuth, $allowAnonymous, $middlewares ] = $match;
+      [ $handler, $params, $_, $_, $middlewares ] = $match;
 
       $allMiddlewares = array_merge($this->globalMiddlewares, $middlewares);
 
