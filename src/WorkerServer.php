@@ -236,14 +236,14 @@ extends AbstractWorkerServer
   ): WorkerServer {
     $refClass = new ReflectionClass( $class );
 
-    $reflection = new ReflectionClass( $refClass );
-    $controllerAttr = $reflection->getAttributes(
-      Controller::class
-    )[0] ?? null;
+    // $reflection = new ReflectionClass( $refClass );
+    // $controllerAttr = $reflection->getAttributes(
+    //   Controller::class
+    // )[0] ?? null;
 
-    if( $controllerAttr === null ){
-      return $this;
-    }
+    // if( $controllerAttr === null ){
+    //   return $this;
+    // }
 
     $middlewares = Controller::getMiddlewares( $refClass );
 
@@ -254,17 +254,17 @@ extends AbstractWorkerServer
     //   }
     // }
 
-    $authenticateAttr = $reflection->getAttributes(Authenticate::class)[0] ?? null;
+    $authenticateAttr = $refClass->getAttributes(Authenticate::class)[0] ?? null;
     $requiresAuth = $authenticateAttr !== null;
 
-    $controllerPath = '/' . trim($controllerAttr->newInstance()->prefix, '/');
+    $controllerPath = '/' . trim($refClass->newInstance()->prefix, '/');
     $basePath = '/' . $prefix . $controllerPath;
     $instance = Container::make($refClass);
     $httpAttrs = [Get::class, Post::class, Put::class, Patch::class, Delete::class];
 
-    Logger::info("{$reflection->getShortName()}");
+    Logger::info("{$refClass->getShortName()}");
     
-    foreach ( $reflection->getMethods( ReflectionMethod::IS_PUBLIC ) as $method ) {
+    foreach ( $refClass->getMethods( ReflectionMethod::IS_PUBLIC ) as $method ) {
       $allowAnonymousAttr = $method->getAttributes(AllowAnonymous::class)[0] ?? null;
       $allowAnonymous = $allowAnonymousAttr !== null;
 
