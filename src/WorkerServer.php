@@ -85,8 +85,8 @@ extends AbstractWorkerServer
   private function registerRouter(
     string $method, string $path, Closure $handler, array $metadata = []
   ): WorkerServer {
-    $key = sprintf( "Mapper {%s/%s %s}", 
-      $this->prefix, $path, strtoupper( $method )
+    $key = sprintf( "%s %s/%s", 
+      strtoupper( $method ), $this->prefix, $path
     );
     
     $this->routers[ $key ] = [
@@ -233,15 +233,13 @@ extends AbstractWorkerServer
     string $class, 
     string|null $prefix = null,
     array $controllerPaths = [],
-    array $controllerMiddlewares = [],
-    array $controllerMethodsPublics = []
+    array $controllerMiddlewares = []
   ): WorkerServer {
     $refClass = new ReflectionClass( $class );
     
     $controller = Controller::getInstance( $refClass );
     $controllerPrefix = Controller::getPrefix( $controller );
-    $controllerMiddlewares = Controller::getMiddlewares( $refClass );
-    $controllerMethodsPublics = Controller::getMethodsPublics( $refClass );
+    $controllerMiddlewares = Controller::getMiddlewaresFromController( $refClass );
     $controllerMiddlewaresIsAuthenticate = Controller::getMiddlewaresIsAuthenticate( $refClass );
 
     // add paths in controllerPaths
@@ -253,21 +251,26 @@ extends AbstractWorkerServer
 
     Logger::info("{$refClass->getShortName()}");
     
-    foreach ( $controllerMethodsPublics as $method ) {
-      $middlewareIsAllowAnonymous = Controller::getMiddlewaresIsAllowAnonymous( $method );
-
-      $methodMiddlewares = [];
-      foreach ($method->getAttributes() as $attribute) {
-        $attrClass = $attribute->getName();
-        if (is_subclass_of($attrClass, Middleware::class)) {
-          $methodMiddlewares[] = $attrClass;
-        }
-      }
+    foreach ( Controller::getMethodsPublics( $refClass ) as $methodPublic ) {
+      $middlewareIsAllowAnonymous = Controller::getMiddlewaresIsAllowAnonymous( $methodPublic );
 
       $controllerMiddlewares = [
-        ...$controllerMiddlewares, 
-        ...$methodMiddlewares
+        ...$controllerMiddlewares,
+        ...Controller::getMiddlewaresFromMethod( $methodPublic )
       ];
+
+      // $methodMiddlewares = [];
+      // foreach ($methodPublic->getAttributes() as $attribute) {
+      //   $attrClass = $attribute->getName();
+      //   if (is_subclass_of($attrClass, Middleware::class)) {
+      //     $methodMiddlewares[] = $attrClass;
+      //   }
+      // }
+
+      // $controllerMiddlewares = [
+      //   ...$controllerMiddlewares, 
+      //   ...$methodMiddlewares
+      // ];
 
       if( $middlewareIsAllowAnonymous ){
         $controllerMiddlewares = array_filter($controllerMiddlewares, function($mw) {
@@ -275,17 +278,19 @@ extends AbstractWorkerServer
         });
       }
 
-      foreach ($httpAttrs as $attrClass) {
-        $attrs = $method->getAttributes($attrClass);
+      foreach( Controller::getRequestTypes() as $requestTypes ){
+        $attrs = $methodPublic->getAttributes( $requestTypes );
         if( empty( $attrs )){
           continue;
         }
 
+
+
         $subPath = $attrs[0]->newInstance()->path;
-        $httpMethod = strtoupper((new ReflectionClass($attrClass))->getShortName());
+        $httpMethod = strtoupper((new ReflectionClass($requestTypes))->getShortName());
         $controllerPaths[] = trim( $subPath, "/" );
 
-        $handler = Closure::fromCallable([$instance, $method->getName()]);
+        $handler = Closure::fromCallable([$instance, $methodPublic->getName()]);
 
         $metadata = [
           'requiresAuth' => $controllerMiddlewaresIsAuthenticate,

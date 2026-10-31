@@ -53,7 +53,7 @@ class Controller
     return implode( "/", $paths );
   }
   
-  public static function getMiddlewares(
+  public static function getMiddlewaresFromController(
     ReflectionClass $refClass,
     array $middlewares = []
   ): array {
@@ -68,6 +68,22 @@ class Controller
         array_values( $middlewares )
     );
   }
+
+  public static function getMiddlewaresFromMethod(
+    ReflectionMethod $refMethod,
+    array $middlewares = []
+  ): array {
+    $middlewares = array_filter(
+      $refMethod->getAttributes(), fn( ReflectionAttribute $refAttr ) => (
+        is_subclass_of( $refAttr->getName(), Middleware::class )
+      )
+    );
+
+    return array_map(
+      fn( ReflectionAttribute $refAttr ) => $refAttr->getName(),
+        array_values( $middlewares )
+    );
+  }  
 
   public static function getMiddlewaresIsAuthenticate(
     ReflectionClass $refClass
@@ -105,5 +121,10 @@ class Controller
 
     [ $allowAnonymous ] = $refMethodAttrs;
     return $allowAnonymous->getName() === AllowAnonymous::class;
-  } 
+  }
+
+  public static function getRequestTypes(
+  ): array {
+    return [ Get::class, Post::class, Put::class, Patch::class, Delete::class ];
+  }
 }

@@ -1,6 +1,6 @@
 {
   "name": "websyspro/worker-server",
-  "version": "1.0.74",
+  "version": "1.0.75",
   "description": "Set of features in PHP for creating entitys for database",
   "minimum-stability": "dev",
   "prefer-stable": true,
