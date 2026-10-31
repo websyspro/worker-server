@@ -185,35 +185,35 @@ extends AbstractWorkerServer
   public function registerModules(
     mixed ...$modules
   ): WorkerServer {
-    foreach( $modules as $moduleClass ){
-      $reflection = new ReflectionClass($moduleClass);
-      $moduleAttr = $reflection->getAttributes( 
-        Module::class
-      )[0] ?? null;
+    foreach( $modules as $strClass ){
+      $refClass = new ReflectionClass( $strClass );
+      // $refClassAttrs = $refClass->getAttributes( 
+      //   Module::class
+      // )[0] ?? null;
 
-      if( $moduleAttr === null ){
-        continue;
+      // if( $moduleAttr === null ){
+      //   continue;
+      // }
+
+      $module = Module::getInstance( $refClass );
+      $prefix = Module::getPrefix( $refClass );
+
+      if( $module instanceof Module ){
+        // Passagem 1 — cria/sincroniza tabelas sem FKs
+        // $schema = SchemaManager::create();
+        foreach( $module->entities as $entityClass ){
+          // $schema->syncTable($entityClass);
+        }
+
+        // Passagem 2 — aplica FKs após todas as tabelas existirem
+        foreach( $module->entities as $entityClass ){
+          // $schema->applyForeignKeys($entityClass);
+        }
+
+        foreach( $module->controllers as $controller ){
+          $this->register( $controller, $prefix );
+        }        
       }
-
-      $module = $moduleAttr->newInstance();
-      $modulePrefix = $module->name !== "" 
-        ? "/" . trim( $module->name, "/" ) 
-        : "";
-
-      // Passagem 1 — cria/sincroniza tabelas sem FKs
-      // $schema = SchemaManager::create();
-      foreach( $module->entities as $entityClass ){
-        // $schema->syncTable($entityClass);
-      }
-
-      // Passagem 2 — aplica FKs após todas as tabelas existirem
-      foreach( $module->entities as $entityClass ){
-        // $schema->applyForeignKeys($entityClass);
-      }
-
-      foreach( $module->controllers as $controller ){
-        $this->register( $controller, $modulePrefix );
-      }      
     }
 
     return $this;
