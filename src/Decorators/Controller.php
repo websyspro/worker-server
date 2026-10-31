@@ -6,6 +6,7 @@ use ReflectionMethod;
 use Websyspro\WorkerServer\Decorators\Middlewares\AllowAnonymous;
 use Websyspro\WorkerServer\Decorators\Middlewares\Authenticate;
 use Websyspro\WorkerServer\Middleware;
+use function sprintf;
 use ReflectionAttribute;
 use ReflectionClass;
 use Attribute;
@@ -39,6 +40,13 @@ class Controller
       : null;
   } 
 
+  public static function getHandler(
+    ReflectionClass $refClass, 
+    ReflectionMethod $method
+  ): array {
+    return [ $refClass->getName(), $method->getName() ];
+  }
+
   public static function getPrefix(
     Controller $controller
   ): string {
@@ -52,7 +60,7 @@ class Controller
   ): string {
     return implode( "/", $paths );
   }
-  
+
   public static function getMiddlewaresFromController(
     ReflectionClass $refClass,
     array $middlewares = []
@@ -100,6 +108,27 @@ class Controller
     return $authenticate->getName() === Authenticate::class;
   }
 
+  public static function getMethodInstance(
+    ReflectionMethod $methodPublic,
+    string $requestTypes  
+  ): Get|Post|Put|Patch|Delete|null {
+    $refMethodPublic = $methodPublic->getAttributes(
+      $requestTypes 
+    );
+
+    if( empty( $refMethodPublic )){
+      return null;
+    }
+
+    [ $methodInstance ] = array_map(
+      fn( ReflectionAttribute $refAttr ) => (
+        $refAttr->newInstance()
+      ), $refMethodPublic
+    );
+    
+    return $methodInstance;
+  }  
+
   public static function getMethodsPublics(
     ReflectionClass $refClass
   ): array {
@@ -107,7 +136,13 @@ class Controller
       ReflectionMethod::IS_PUBLIC
     );
   }  
-  
+
+  public static function getMethodPath(
+    Get|Post|Put|Patch|Delete $methdoPublicInstance
+  ): string {
+    return trim( $methdoPublicInstance->path, "/" );
+  }  
+
   public static function getMiddlewaresIsAllowAnonymous(
     ReflectionMethod $refMethod
   ): bool {
@@ -127,4 +162,11 @@ class Controller
   ): array {
     return [ Get::class, Post::class, Put::class, Patch::class, Delete::class ];
   }
+
+  public static function getRequestTypeName(
+    string $requestType
+  ): string {
+    $refRequestType = new ReflectionClass( $requestType );
+    return strtoupper( $refRequestType->getShortName());
+  }  
 }
