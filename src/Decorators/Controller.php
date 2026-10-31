@@ -38,6 +38,14 @@ class Controller
       ? $instanceModule 
       : null;
   } 
+
+  public static function getPrefix(
+    Controller $controller
+  ): string {
+    return sprintf( "/%s", trim(
+      $controller->prefix, "/" 
+    ));
+  }
   
   public static function getMiddlewares(
     ReflectionClass $refClass,
@@ -69,6 +77,14 @@ class Controller
     [ $authenticate ] = $refClassAttrs;
     return $authenticate->getName() === Authenticate::class;
   }
+
+  public static function getMethodsPublics(
+    ReflectionClass $refClass
+  ): array {
+    return $refClass->getMethods(
+      ReflectionMethod::IS_PUBLIC
+    );
+  }  
   
   public static function getMiddlewaresIsAllowAnonymous(
     ReflectionMethod $refMethod
@@ -83,5 +99,5 @@ class Controller
 
     [ $allowAnonymous ] = $refMethodAttrs;
     return $allowAnonymous->getName() === AllowAnonymous::class;
-  }  
+  } 
 }

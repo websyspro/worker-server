@@ -232,21 +232,28 @@ extends AbstractWorkerServer
   public function register(
     string $class, 
     string|null $prefix = null,
-    array|null $middlewares = []
+    array $controllerMiddlewares = [],
+    array $controllerMethodsPublics = []
   ): WorkerServer {
     $refClass = new ReflectionClass( $class );
+    
+    $controller = Controller::getInstance( $refClass );
+    $controllerPrefix = Controller::getPrefix( $controller );
+    $controllerMiddlewares = Controller::getMiddlewares( $refClass );
+    $controllerMethodsPublics = Controller::getMethodsPublics( $refClass );
+    $controllerMiddlewaresIsAuthenticate = Controller::getMiddlewaresIsAuthenticate( $refClass );
 
-    $middlewares = Controller::getMiddlewares( $refClass );
-    $middlewareIsAuthenticate = Controller::getMiddlewaresIsAuthenticate( $refClass );
 
-    $controllerPath = '/' . trim(Controller::getInstance($refClass)->prefix, '/');
-    $basePath = '/' . $prefix . $controllerPath;
+
+
+
+    $basePath = '/' . $prefix . $controllerPrefix;
     $instance = Container::make($class);
     $httpAttrs = [Get::class, Post::class, Put::class, Patch::class, Delete::class];
 
     Logger::info("{$refClass->getShortName()}");
     
-    foreach ( $refClass->getMethods( ReflectionMethod::IS_PUBLIC ) as $method ) {
+    foreach ( $controllerMethodsPublics as $method ) {
       $middlewareIsAllowAnonymous = Controller::getMiddlewaresIsAllowAnonymous( $method );
 
       $methodMiddlewares = [];
@@ -257,13 +264,13 @@ extends AbstractWorkerServer
         }
       }
 
-      $middlewares = [
-        ...$middlewares, 
+      $controllerMiddlewares = [
+        ...$controllerMiddlewares, 
         ...$methodMiddlewares
       ];
 
       if( $middlewareIsAllowAnonymous ){
-        $middlewares = array_filter($middlewares, function($mw) {
+        $controllerMiddlewares = array_filter($controllerMiddlewares, function($mw) {
           return $mw !== Authenticate::class;
         });
       }
@@ -280,9 +287,9 @@ extends AbstractWorkerServer
         $handler = Closure::fromCallable([$instance, $method->getName()]);
 
         $metadata = [
-          'requiresAuth' => $middlewareIsAuthenticate,
+          'requiresAuth' => $controllerMiddlewaresIsAuthenticate,
           'allowAnonymous' => $middlewareIsAllowAnonymous,
-          'middlewares' => array_values( $middlewares )
+          'middlewares' => array_values( $controllerMiddlewares )
         ];
 
         $this->registerRouter( 
