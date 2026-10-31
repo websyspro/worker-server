@@ -13,9 +13,7 @@ use Websyspro\WorkerServer\Decorators\Requests\Body;
 use Websyspro\WorkerServer\Decorators\Requests\Query;
 use Websyspro\WorkerServer\Decorators\Requests\Param;
 use Websyspro\WorkerServer\Decorators\Requests\File;
-use Websyspro\WorkerServer\Decorators\Middlewares\Authenticate;
 use Websyspro\WorkerServer\Middleware;
-use function strtoupper;
 use function explode;
 use function preg_match;
 use function preg_replace;
@@ -72,13 +70,14 @@ extends AbstractWorkerServer
     array $middlewares = []
   ): WorkerServer {
     $key = empty( $path ) || $path === "/"
-      ? sprintf( "%s %s", strtoupper( $method ), $this->prefix )
-      : sprintf( "%s %s/%s", strtoupper( $method ), $this->prefix, trim( $path, "/" ) );
+      ? sprintf( "%s %s", $method, $this->prefix )
+      : sprintf( "%s %s/%s", $method, $this->prefix, trim( $path, "/" ) );
 
     $this->routers[ $key ] = [
       $handler, $middlewares,
     ];
-    
+
+    Logger::info( "Mapper {{$this->prefix}/{$path}, {$method}} route" );
     return $this;
   }
 
@@ -182,6 +181,8 @@ extends AbstractWorkerServer
           // $schema->applyForeignKeys($entityClass);
         }
 
+        Logger::info( "Mapper Module {$refClass->getShortName()}" );
+
         foreach( $module->controllers as $class ){
           $this->register( $class, $prefix );
         }        
@@ -216,7 +217,7 @@ extends AbstractWorkerServer
     $controllerPaths[] = $prefix;
     $controllerPaths[] = $controllerPrefix;
 
-    Logger::info("{$refClass->getShortName()}");
+    Logger::info("{$refClass->getShortName()} {{$this->prefix}/{$prefix}/{$controllerPrefix}}");
     
     foreach( Controller::getMethodsPublics( $refClass ) as $refMethod ) {
       foreach( Controller::getMiddlewaresFromMethod( $refMethod ) as $methodMiddleware ){
