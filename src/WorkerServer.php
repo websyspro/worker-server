@@ -183,11 +183,13 @@ extends AbstractWorkerServer
   }
 
   public function registerModules(
-    array $modules
+    mixed ...$modules
   ): WorkerServer {
     foreach( $modules as $moduleClass ){
       $reflection = new ReflectionClass($moduleClass);
-      $moduleAttr = $reflection->getAttributes( Module::class )[0] ?? null;
+      $moduleAttr = $reflection->getAttributes( 
+        Module::class
+      )[0] ?? null;
 
       if( $moduleAttr === null ){
         continue;
@@ -209,21 +211,19 @@ extends AbstractWorkerServer
         // $schema->applyForeignKeys($entityClass);
       }
 
-      $this->registerControllers(
-        $module->controllers, 
-        $modulePrefix
-      );
+      foreach( $module->controllers as $controller ){
+        $this->register( $controller, $modulePrefix );
+      }      
     }
 
     return $this;
   }
 
   public function registerControllers(
-    array $controllers,
-    string $modulePrefix = ""
+    mixed ...$controllers
   ): WorkerServer {
     foreach( $controllers as $controllerClass ){
-      $this->register( $controllerClass, $modulePrefix );
+      $this->register( $controllerClass );
     }
 
     return $this;
@@ -231,10 +231,12 @@ extends AbstractWorkerServer
 
   public function register(
     string $controllerClass, 
-    string $modulePrefix = ""
+    string|null $modulePrefix = null
   ): WorkerServer {
-    $reflection = new ReflectionClass($controllerClass);
-    $controllerAttr = $reflection->getAttributes(Controller::class)[0] ?? null;
+    $reflection = new ReflectionClass( $controllerClass );
+    $controllerAttr = $reflection->getAttributes(
+      Controller::class
+    )[0] ?? null;
 
     if( $controllerAttr === null ){
       return $this;
@@ -258,7 +260,7 @@ extends AbstractWorkerServer
 
     Logger::info("{$reflection->getShortName()}");
     
-    foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+    foreach ( $reflection->getMethods( ReflectionMethod::IS_PUBLIC ) as $method ) {
       $allowAnonymousAttr = $method->getAttributes(AllowAnonymous::class)[0] ?? null;
       $allowAnonymous = $allowAnonymousAttr !== null;
 
@@ -295,10 +297,15 @@ extends AbstractWorkerServer
         $metadata = [
           'requiresAuth' => $requiresAuth,
           'allowAnonymous' => $allowAnonymous,
-          'middlewares' => array_values($middlewares)
+          'middlewares' => array_values( $middlewares )
         ];
 
-        $this->registerRouter($httpMethod, $fullPath, $handler, $metadata);
+        $this->registerRouter( 
+          $httpMethod, 
+          $fullPath, 
+          $handler, 
+          $metadata
+        );
         
         Logger::info("Mapper {{$httpMethod} {$fullPath}}");
       }
