@@ -301,6 +301,7 @@ abstract class AbstractWorkerServer
     foreach( $response->getHeaders() as $name => $value ){
       header( "$name: $value" );
     }
+    
     echo $response->getBody();
   }
 
