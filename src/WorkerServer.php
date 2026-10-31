@@ -85,8 +85,8 @@ extends AbstractWorkerServer
   private function registerRouter(
     string $method, string $path, Closure $handler, array $metadata = []
   ): WorkerServer {
-    $key = sprintf( "%s %s%s", 
-      strtoupper( $method ), $this->prefix, $path
+    $key = sprintf( "Mapper {%s/%s %s}", 
+      $this->prefix, $path, strtoupper( $method )
     );
     
     $this->routers[ $key ] = [
@@ -232,6 +232,7 @@ extends AbstractWorkerServer
   public function register(
     string $class, 
     string|null $prefix = null,
+    array $controllerPaths = [],
     array $controllerMiddlewares = [],
     array $controllerMethodsPublics = []
   ): WorkerServer {
@@ -243,11 +244,10 @@ extends AbstractWorkerServer
     $controllerMethodsPublics = Controller::getMethodsPublics( $refClass );
     $controllerMiddlewaresIsAuthenticate = Controller::getMiddlewaresIsAuthenticate( $refClass );
 
+    // add paths in controllerPaths
+    $controllerPaths[] = $prefix;
+    $controllerPaths[] = $controllerPrefix;
 
-
-
-
-    $basePath = '/' . $prefix . $controllerPrefix;
     $instance = Container::make($class);
     $httpAttrs = [Get::class, Post::class, Put::class, Patch::class, Delete::class];
 
@@ -283,7 +283,8 @@ extends AbstractWorkerServer
 
         $subPath = $attrs[0]->newInstance()->path;
         $httpMethod = strtoupper((new ReflectionClass($attrClass))->getShortName());
-        $fullPath = $basePath . ($subPath === '/' ? '' : $subPath);
+        $controllerPaths[] = trim( $subPath, "/" );
+
         $handler = Closure::fromCallable([$instance, $method->getName()]);
 
         $metadata = [
@@ -294,12 +295,10 @@ extends AbstractWorkerServer
 
         $this->registerRouter( 
           $httpMethod, 
-          $fullPath, 
+          Controller::getJoinPahs( $controllerPaths ), 
           $handler, 
           $metadata
         );
-        
-        Logger::info("Mapper {{$httpMethod} {$fullPath}}");
       }
     }
 

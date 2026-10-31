@@ -42,9 +42,15 @@ class Controller
   public static function getPrefix(
     Controller $controller
   ): string {
-    return sprintf( "/%s", trim(
+    return sprintf( "%s", trim(
       $controller->prefix, "/" 
     ));
+  }
+
+  public static function getJoinPahs(
+    array $paths
+  ): string {
+    return implode( "/", $paths );
   }
   
   public static function getMiddlewares(
