@@ -236,6 +236,8 @@ extends AbstractWorkerServer
   ): WorkerServer {
     $refClass = new ReflectionClass( $class );
 
+    $refClass = new ReflectionClass( $class );
+
     // $reflection = new ReflectionClass( $refClass );
     // $controllerAttr = $reflection->getAttributes(
     //   Controller::class
@@ -245,13 +247,13 @@ extends AbstractWorkerServer
     //   return $this;
     // }
 
-    $middlewares = [];
-    foreach ( $refClass->getAttributes() as $attribute ) {
-      $attrClass = $attribute->getName();
-      if (is_subclass_of($attrClass, Middleware::class)) {
-        $middlewares[] = $attrClass;
-      }
-    }
+    $middlewares = Controller::getMiddlewares( $refClass );
+    // foreach ( $refClass->getAttributes() as $attribute ) {
+    //   $attrClass = $attribute->getName();
+    //   if (is_subclass_of($attrClass, Middleware::class)) {
+    //     $middlewares[] = $attrClass;
+    //   }
+    // }
 
     $authenticateAttr = $refClass->getAttributes(Authenticate::class)[0] ?? null;
     $requiresAuth = $authenticateAttr !== null;

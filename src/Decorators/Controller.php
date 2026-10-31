@@ -2,10 +2,10 @@
 
 namespace Websyspro\WorkerServer\Decorators;
 
-use Attribute;
+use Websyspro\WorkerServer\Middleware;
 use ReflectionAttribute;
 use ReflectionClass;
-use Websyspro\WorkerServer\Middleware;
+use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class Controller
@@ -37,12 +37,18 @@ class Controller
   } 
   
   public static function getMiddlewares(
-    ReflectionClass $refClass
+    ReflectionClass $refClass,
+    array $middlewares = []
   ): array {
-    return array_filter(
+    $middlewares = array_filter(
       $refClass->getAttributes(), fn( ReflectionAttribute $refAttr ) => (
         is_subclass_of( $refAttr->getName(), Middleware::class )
       )
+    );
+
+    return array_map(
+      fn( ReflectionAttribute $refAttr ) => $refAttr->getName(),
+        array_values( $middlewares )
     );
   }
 }
