@@ -63,15 +63,13 @@ class Logger
   }
 
   private static function logBase(
-    string $getMyPid = getmypid()
   ): string {
-    return "[WorkerServer] {$getMyPid} -";
+    return sprintf( "[WorkerServer] %s -", getmygid() );
   }
 
   private static function logTime(
-    DateTime $dateTime = new DateTime()
   ): string {
-    return $dateTime->format( "Y-m-d H:i:s.v" );
+    return (new DateTime())->format( "Y-m-d H:i:s.v" );
   }
 
   private static function log(
