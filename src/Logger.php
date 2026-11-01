@@ -84,7 +84,8 @@ class Logger
       Terminal::init()
         ->green( Logger::logBase() )->spc()
         ->white( Logger::logTime() )->spc()
-        ->yellow( Logger::logDiff() );   
+        ->green( $message )   
+        ->yellow( Logger::logDiff() );
     }
   }
 
