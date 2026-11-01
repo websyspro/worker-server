@@ -53,8 +53,8 @@ class Logger
   }
 
   private static function logDiff(
-    float $now = microtime(true)
   ): float {
+    $now = microtime(true);
     $diff = Logger::$time > 0
       ? round(( $now - Logger::$time ) * 1000 ) : 0;
 
