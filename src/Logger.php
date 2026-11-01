@@ -53,13 +53,13 @@ class Logger
   }
 
   private static function logDiff(
-  ): float {
+  ): string {
     $now = microtime(true);
     $diff = Logger::$time > 0
       ? round(( $now - Logger::$time ) * 1000 ) : 0;
 
     Logger::$time = $now;
-    return $diff;
+    return sprintf( "+%sms", $diff );
   }
 
   private static function logBase(
@@ -83,7 +83,7 @@ class Logger
         ->green( Logger::logBase() )->spc()
         ->white( Logger::logTime() )->spc()
         ->green( $message )   
-        ->yellow( Logger::logDiff() )
+        ->yellow( Logger::logDiff() )->spc()
         ->eof();
     }
   }
