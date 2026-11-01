@@ -83,7 +83,8 @@ class Logger
         ->green( Logger::logBase() )->spc()
         ->white( Logger::logTime() )->spc()
         ->green( $message )   
-        ->yellow( Logger::logDiff() );
+        ->yellow( Logger::logDiff() )
+        ->eof();
     }
   }
 
