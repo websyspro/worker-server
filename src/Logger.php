@@ -2,63 +2,121 @@
 
 namespace Websyspro\WorkerServer;
 
+use DateTime;
+use Websyspro\Logger\Terminal;
+use Websyspro\WorkerServer\Interfaces\LoggerType;
 use function date;
 use function microtime;
 use function round;
 use function sprintf;
+use function defined;
 
 class Logger
 {
-    private static float $lastTime = 0.0;
+  private static float $time = 0.0;
 
-    public static function info(string $message): void
-    {
-        static::log('INFO ', "\033[32m", $message);
+  public static function info(
+    string $message
+  ): void {
+    Logger::log( LoggerType::INFO, $message );
+  }
+
+  public static function error(
+    string $message
+  ): void {
+    Logger::log( LoggerType::ERROR, $message );
+  }
+
+  public static function warn(
+    string $message
+  ): void {
+    Logger::log( LoggerType::WARN, $message );
+  }
+
+  public static function debug(
+    string $message
+  ): void {
+    Logger::log( LoggerType::DEBUG, $message );
+  }
+
+  private static function isWorker(
+  ): bool {
+    if( defined( "SERVER_TOOLS" ) === false ){
+      return false;
     }
 
-    public static function error(string $message): void
-    {
-        static::log('ERROR', "\033[31m", $message);
+    if( isset( SERVER_TOOLS[ "isWorker" ]) === false ){
+      return false;
     }
 
-    public static function warn(string $message): void
-    {
-        static::log('WARN ', "\033[33m", $message);
+    return SERVER_TOOLS[ "isWorker" ];
+  }
+
+  private static function logDiff(
+    float $now = microtime(true)
+  ): float {
+    $diff = Logger::$time > 0
+      ? round(( $now - Logger::$time ) * 1000 ) : 0;
+
+    Logger::$time = $now;
+    return $diff;
+  }
+
+  private static function logBase(
+    string $getMyPid = getmypid()
+  ): string {
+    return "[WorkerServer] {$getMyPid} -";
+  }
+
+  private static function logTime(
+    DateTime $dateTime = new DateTime()
+  ): string {
+    return $dateTime->format( "Y-m-d H:i:s.v" );
+  }
+
+  private static function log(
+    LoggerType $loggerType,
+    string $message
+  ): void {
+    if( Logger::isWorker() ){
+      error_log( $message );
+    } else {
+      Terminal::init()
+        ->green( Logger::logBase() )->spc()
+        ->white( Logger::logTime() )->spc()
+        ->yellow( Logger::logDiff() );   
+    }
+  }
+
+  private static function log_(
+    string $level, string $color, string $message
+  ): void {
+    // No modo Apache (isWorker=false), logs vão para error_log em vez de stdout
+    if( defined('SERVER_TOOLS') && isset( SERVER_TOOLS['isWorker'] ) && SERVER_TOOLS['isWorker'] === false ){
+      error_log( "[$level] $message" );
+      return;
     }
 
-    public static function debug(string $message): void
-    {
-        static::log('DEBUG', "\033[36m", $message);
-    }
+    $now = microtime(true);
+    $diff = static::$time > 0
+        ? round(($now - static::$time) * 1000)
+        : 0;
 
-    private static function log(string $level, string $color, string $message): void
-    {
-        // No modo Apache (isWorker=false), logs vão para error_log em vez de stdout
-        if( defined('SERVER_TOOLS') && isset( SERVER_TOOLS['isWorker'] ) && SERVER_TOOLS['isWorker'] === false ){
-            error_log( "[$level] $message" );
-            return;
-        }
+    static::$time = $now;
 
-        $now  = microtime(true);
-        $diff = static::$lastTime > 0
-            ? round(($now - static::$lastTime) * 1000)
-            : 0;
+    $timestamp = date('Y-m-d H:i:s');
+    $reset = "\033[0m";
 
-        static::$lastTime = $now;
-
-        $timestamp = date('Y-m-d H:i:s');
-        $reset     = "\033[0m";
-
-        echo sprintf(
-            "%s[%s] %s%s %s %s+%sms%s\n",
-            $color,
-            $timestamp,
-            $level,
-            $reset,
-            $message,
-            $color,
-            $diff,
-            $reset
-        );
-    }
+    echo sprintf(
+      "%s[%s] %s%s %s %s+%sms%s\n",
+      $color,
+      $timestamp,
+      $level,
+      $reset,
+      $message,
+      $color,
+      $diff,
+      $reset
+    );
+  }
 }
