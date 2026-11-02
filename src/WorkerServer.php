@@ -243,9 +243,10 @@ extends AbstractWorkerServer
             Controller::getMiddlewares( $refMethod, $controllerMiddlewares )
           );
           
-          // clear ControllerPaths
-          $controllerPaths = [];
         }
+
+        // clear ControllerPaths
+        $controllerPaths = [];
       }
     }
 
