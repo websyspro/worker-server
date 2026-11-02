@@ -214,12 +214,14 @@ extends AbstractWorkerServer
     $controllerPrefix = Controller::getPrefix( $controller );
     $controllerMiddlewares = Controller::getMiddlewaresFromController( $refClass );
 
-    $controllerPaths[] = $prefix;
-    $controllerPaths[] = $controllerPrefix;
+
 
     Logger::info("{$refClass->getShortName()} {{$this->prefix}/{$prefix}/{$controllerPrefix}}");
     
     foreach( Controller::getMethodsPublics( $refClass ) as $refMethod ) {
+      $controllerPaths[] = $prefix;
+      $controllerPaths[] = $controllerPrefix;
+
       foreach( Controller::getMiddlewaresFromMethod( $refMethod ) as $methodMiddleware ){
         $controllerMiddlewares[] = $methodMiddleware;  
       }
@@ -239,7 +241,10 @@ extends AbstractWorkerServer
             Controller::getJoinPahs( $controllerPaths ), 
             Controller::getHandler( $refClass, $refMethod ), 
             Controller::getMiddlewares( $refMethod, $controllerMiddlewares )
-          );          
+          );
+          
+          // clear ControllerPaths
+          $controllerPaths = [];
         }
       }
     }
