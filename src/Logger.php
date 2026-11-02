@@ -9,56 +9,63 @@ use function sprintf;
 
 class Logger
 {
-    private static float $lastTime = 0.0;
+  private static float $lastTime = 0.0;
 
-    public static function info(string $message): void
-    {
-        static::log('INFO ', "\033[32m", $message);
+  public static function info(
+    string $message
+  ): void {
+    static::log('INFO ', "\033[32m", $message);
+  }
+
+  public static function error(
+    string $message
+  ): void {
+    static::log('ERROR', "\033[31m", $message);
+  }
+
+  public static function warn(
+    string $message
+  ): void {
+    static::log('WARN ', "\033[33m", $message);
+  }
+
+  public static function debug(
+    string $message
+  ): void {
+    static::log('DEBUG', "\033[36m", $message);
+  }
+
+  private static function log(
+    string $level, 
+    string $color, 
+    string $message
+  ): void {
+    // No modo Apache (isWorker=false), logs vão para error_log em vez de stdout
+    if( defined('SERVER_TOOLS') && isset( SERVER_TOOLS['isWorker'] ) && SERVER_TOOLS['isWorker'] === false ){
+      error_log( "[$level] $message" );
+      return;
     }
 
-    public static function error(string $message): void
-    {
-        static::log('ERROR', "\033[31m", $message);
-    }
+    $now  = microtime(true);
+    $diff = static::$lastTime > 0
+      ? round(($now - static::$lastTime) * 1000)
+      : 0;
 
-    public static function warn(string $message): void
-    {
-        static::log('WARN ', "\033[33m", $message);
-    }
+    static::$lastTime = $now;
 
-    public static function debug(string $message): void
-    {
-        static::log('DEBUG', "\033[36m", $message);
-    }
+    $timestamp = date('Y-m-d H:i:s');
+    $reset = "\033[0m";
 
-    private static function log(string $level, string $color, string $message): void
-    {
-        // No modo Apache (isWorker=false), logs vão para error_log em vez de stdout
-        if( defined('SERVER_TOOLS') && isset( SERVER_TOOLS['isWorker'] ) && SERVER_TOOLS['isWorker'] === false ){
-            error_log( "[$level] $message" );
-            return;
-        }
-
-        $now  = microtime(true);
-        $diff = static::$lastTime > 0
-            ? round(($now - static::$lastTime) * 1000)
-            : 0;
-
-        static::$lastTime = $now;
-
-        $timestamp = date('Y-m-d H:i:s');
-        $reset     = "\033[0m";
-
-        echo sprintf(
-            "%s[%s] %s%s %s %s+%sms%s\n",
-            $color,
-            $timestamp,
-            $level,
-            $reset,
-            $message,
-            $color,
-            $diff,
-            $reset
-        );
-    }
+    echo sprintf(
+      "%s[%s] %s%s %s %s+%sms%s\n",
+      $color,
+      $timestamp,
+      $level,
+      $reset,
+      $message,
+      $color,
+      $diff,
+      $reset
+    );
+  }
 }
