@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8dc4871f23ce3927dabdecc6ba072152",
+    "content-hash": "9c20432ff80825043b106953df4e41c3",
     "packages": [
         {
             "name": "websyspro/arrowtosql",
-            "version": "1.0.79",
+            "version": "1.0.88",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/arrowtosql.git",
-                "reference": "591efad995b8a7daf2f219fe8259440bf26e55d2"
+                "reference": "e8d3efa5e764953f45dbae382c519c7c3cb93da7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/arrowtosql/zipball/591efad995b8a7daf2f219fe8259440bf26e55d2",
-                "reference": "591efad995b8a7daf2f219fe8259440bf26e55d2",
+                "url": "https://api.github.com/repos/websyspro/arrowtosql/zipball/e8d3efa5e764953f45dbae382c519c7c3cb93da7",
+                "reference": "e8d3efa5e764953f45dbae382c519c7c3cb93da7",
                 "shasum": ""
             },
             "require": {
@@ -47,9 +47,9 @@
             "description": "Convert Arrow FN into SQL queries",
             "support": {
                 "issues": "https://github.com/websyspro/arrowtosql/issues",
-                "source": "https://github.com/websyspro/arrowtosql/tree/1.0.79"
+                "source": "https://github.com/websyspro/arrowtosql/tree/1.0.88"
             },
-            "time": "2026-11-02T12:56:33+00:00"
+            "time": "2026-11-02T20:22:46+00:00"
         },
         {
             "name": "websyspro/connection",
@@ -140,16 +140,16 @@
         },
         {
             "name": "websyspro/entity",
-            "version": "1.0.112",
+            "version": "1.0.114",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/entity.git",
-                "reference": "cf447f81ff3946cebd2ca18c5b6f1179dd4cf50c"
+                "reference": "402f7825c201a9d28414c02e73037e321991ec79"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/entity/zipball/cf447f81ff3946cebd2ca18c5b6f1179dd4cf50c",
-                "reference": "cf447f81ff3946cebd2ca18c5b6f1179dd4cf50c",
+                "url": "https://api.github.com/repos/websyspro/entity/zipball/402f7825c201a9d28414c02e73037e321991ec79",
+                "reference": "402f7825c201a9d28414c02e73037e321991ec79",
                 "shasum": ""
             },
             "require": {
@@ -176,9 +176,9 @@
             "description": "Library for managing controllers and services",
             "support": {
                 "issues": "https://github.com/websyspro/entity/issues",
-                "source": "https://github.com/websyspro/entity/tree/1.0.112"
+                "source": "https://github.com/websyspro/entity/tree/1.0.114"
             },
-            "time": "2026-10-26T19:27:05+00:00"
+            "time": "2026-11-02T20:03:58+00:00"
         },
         {
             "name": "websyspro/logger",

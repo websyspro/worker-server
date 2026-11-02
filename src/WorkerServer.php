@@ -3,6 +3,8 @@
 namespace Websyspro\WorkerServer;
 
 use InvalidArgumentException;
+use stdClass;
+use Websyspro\Utils\Collection;
 use Websyspro\WorkerServer\Enums\RequestMethod;
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Container;
@@ -348,6 +350,41 @@ extends AbstractWorkerServer
     return $next( $request );
   }
 
+  private function resultNormalized(
+    mixed $value
+  ): mixed {
+    if( $value instanceof Collection ){
+      return array_map(
+        fn( $item ) => (
+          $this->resultNormalized(
+            $item
+          )
+        ), $value->items
+      );
+    }
+
+    if( $value instanceof stdClass ){
+      $normalized = new stdClass();
+      foreach( $value as $key => $prop ){
+        $normalized->{ $key } = $this->resultNormalized( $prop );
+      }
+      return $normalized;
+    }
+
+    if( is_array( $value ) ){
+      return array_map(
+        fn( $item ) => (
+          $this->resultNormalized( 
+            $item
+          )
+        ),
+        $value
+      );
+    }
+
+    return $value;
+  }
+
   protected function handleRequest(
     Request $request
   ): Response {
@@ -366,7 +403,9 @@ extends AbstractWorkerServer
       [ $handler, $params, $middlewares 
       ] = $match;
 
-      $nextHandler = function( Request $request ) use ( $handler, $params ){
+      $nextHandler = function( 
+        Request $request
+      ) use ( $handler, $params ){
         if( sizeof( $handler ) === 2 ){
           [ $refClass, $refMethod 
           ] = $handler;
@@ -383,15 +422,20 @@ extends AbstractWorkerServer
         [ $callableHandler ] = $handler;        
         $result = $callableHandler( 
           ...$this->resolveArgs( 
-            $callableHandler, $request->withParams( $params )
+            $callableHandler, 
+            $request->withParams(
+              $params
+            )
           )
         );
 
         if( $result instanceof Response ){
-          return $result;
+          return $this->resultNormalized( $result );
         }
 
-        return Response::json( $result );
+        return Response::json( 
+          $this->resultNormalized( $result )
+        );
       };
 
       return $this->executeMiddlewareStack( $middlewares, $request, $nextHandler );
