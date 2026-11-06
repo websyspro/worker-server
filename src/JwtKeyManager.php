@@ -6,7 +6,7 @@ use Websyspro\WorkerServer\Enums\LogContext;
 
 class JwtKeyManager
 {
-  private const string KEYS_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'keys';
+  private const string KEYS_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'Keys';
   private const string PRIVATE_KEY_FILE = 'private.pem';
   private const string PUBLIC_KEY_FILE  = 'public.pem';
 
@@ -36,7 +36,6 @@ class JwtKeyManager
     } else {
       $this->generateKeys();
       Logger::info( "RSA keys generated (2048-bit)", LogContext::Auth );
-      Logger::info( "Public key: {$this->publicKeyPath}", LogContext::Auth );
     }
 
     return $this;
