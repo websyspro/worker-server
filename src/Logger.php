@@ -40,9 +40,9 @@ class Logger
     static::log('DEBUG', "\033[36m", $message, $context);
   }
 
-  // Formata o level injetando o contexto no meio da palavra
-  // Sem contexto: "INFO " → "[2026-11-06 00:01:50] INFO  message"
-  // Com contexto: "INFO " + Module → "[2026-11-06 00:01:50]I[Module]NFO  message"
+  // Formata o header do log
+  // Sem contexto: "[2026-11-06 00:01:50] INFO "
+  // Com contexto: "[2026-11-06 00:01:50] [Module] INFO "
   private static function formatLevel(
     string $level,
     LogContext|null $context,
@@ -52,11 +52,7 @@ class Logger
       return "[{$timestamp}] {$level}";
     }
 
-    $label  = $context->value;
-    $first  = substr( $level, 0, 1 );
-    $rest   = ltrim( substr( $level, 1 ) );
-
-    return "[{$timestamp}]{$first}[{$label}]{$rest}";
+    return "[{$timestamp}] [{$context->value}] {$level}";
   }
 
   private static function log(
