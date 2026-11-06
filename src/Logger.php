@@ -52,7 +52,10 @@ class Logger
       return "[{$timestamp}] {$level}";
     }
 
-    return "[{$timestamp}] [{$context->value}] {$level}";
+    $yellow = "\033[33m";
+    $reset  = "\033[0m";
+
+    return "[{$timestamp}] {$yellow}[{$context->value}]{$reset} {$level}";
   }
 
   private static function log(
