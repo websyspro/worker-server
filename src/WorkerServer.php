@@ -208,33 +208,41 @@ extends AbstractWorkerServer
       $prefix = Module::getPrefix( $refClass );
 
       if( $module instanceof Module ){
-        $schemaManagers = [];
+        $schemaManageScripts = [];
 
         foreach( $module->entities as $entityClass ){
           $schemaManage = $this->schemaManager( 
-            new ReflectionClass( $entityClass )
+            new ReflectionClass( 
+              $entityClass
+            )
           );
 
           $schemaManage->asyncEntity();
-          foreach( $schemaManage->commandScritps as $commandScript ){
-            if( $commandScript instanceof CommandScript ){
-              Logger::info( $commandScript->message, LogContext::Database );
-            }
-          }
-
-          $schemaManagers[] = $schemaManage;
+          $schemaManageScripts = [
+            ...$schemaManageScripts,
+            ...$schemaManage->commandScritps
+          ];
         }
 
-        foreach( $schemaManagers as $schemaManage ){
-          $schemaManage->commandScritps = [];
+        foreach( $module->entities as $schemaManage ){
+          $schemaManage = $this->schemaManager( 
+            new ReflectionClass( 
+              $entityClass
+            )
+          );
 
           $schemaManage->asyncConstraint();
-          foreach( $schemaManage->commandScritps as $commandScript ){
-            if( $commandScript instanceof CommandScript ){
-              Logger::info( $commandScript->message, LogContext::Database );
-            }
-          }
+          $schemaManageScripts = [
+            ...$schemaManageScripts,
+            ...$schemaManage->commandScritps
+          ];
         }
+
+        foreach( $schemaManageScripts as $commandScript ){
+          if( $commandScript instanceof CommandScript ){
+            Logger::info( $commandScript->message, LogContext::Database );
+          }
+        }        
 
         Logger::info( "Mapper Module {$refClass->getShortName()}", LogContext::Module );
         foreach( $module->controllers as $class ){
