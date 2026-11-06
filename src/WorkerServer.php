@@ -208,11 +208,11 @@ extends AbstractWorkerServer
       $prefix = Module::getPrefix( $refClass );
 
       if( $module instanceof Module ){
+        $schemaManagers = [];
+
         foreach( $module->entities as $entityClass ){
           $schemaManage = $this->schemaManager( 
-            new ReflectionClass( 
-              $entityClass
-            )
+            new ReflectionClass( $entityClass )
           );
 
           $schemaManage->asyncEntity();
@@ -221,21 +221,19 @@ extends AbstractWorkerServer
               Logger::info( $commandScript->message, LogContext::Database );
             }
           }
+
+          $schemaManagers[] = $schemaManage;
         }
 
-        foreach( $module->entities as $entityClass ){
-          $schemaManage = $this->schemaManager( 
-            new ReflectionClass( 
-              $entityClass
-            )
-          );
+        foreach( $schemaManagers as $schemaManage ){
+          $schemaManage->commandScritps = [];
 
           $schemaManage->asyncConstraint();
           foreach( $schemaManage->commandScritps as $commandScript ){
             if( $commandScript instanceof CommandScript ){
               Logger::info( $commandScript->message, LogContext::Database );
             }
-          }          
+          }
         }
 
         Logger::info( "Mapper Module {$refClass->getShortName()}", LogContext::Module );
