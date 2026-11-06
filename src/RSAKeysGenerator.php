@@ -3,6 +3,7 @@
 namespace Websyspro\WorkerServer;
 
 use Websyspro\WorkerServer\Enums\LogContext;
+use RuntimeException;
 
 class RSAKeysGenerator
 {
@@ -58,7 +59,7 @@ class RSAKeysGenerator
     $keypair = openssl_pkey_new( $config );
 
     if( $keypair === false ){
-      throw new \RuntimeException(
+      throw new RuntimeException(
         "openssl_pkey_new() failed. Check that the openssl extension is enabled and openssl.cnf is accessible.\n"
         . implode( "\n", array_map( fn($e) => $e, openssl_error_string() ? [ openssl_error_string() ] : [] ) )
       );
