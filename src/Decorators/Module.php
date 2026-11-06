@@ -12,7 +12,8 @@ class Module
   public function __construct(
     public readonly string $name = "",
     public readonly array $controllers = [],
-    public readonly array $entities = []
+    public readonly array $entities = [],
+    public readonly array $services = [],
   ){}
 
   public static function getInstance(

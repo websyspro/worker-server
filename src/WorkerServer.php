@@ -208,8 +208,6 @@ extends AbstractWorkerServer
       $prefix = Module::getPrefix( $refClass );
 
       if( $module instanceof Module ){
-        $schemaManageScripts = [];
-
         foreach( $module->entities as $entityClass ){
           $schemaManage = $this->schemaManager( 
             new ReflectionClass( 
@@ -240,10 +238,8 @@ extends AbstractWorkerServer
           }
         }
 
-        foreach( $schemaManageScripts as $commandScript ){
-          if( $commandScript instanceof CommandScript ){
-            Logger::info( $commandScript->message, LogContext::Database );
-          }
+        foreach( $module->services as $service ){
+          $serviceInstance = Container::make( $service );
         }        
 
         Logger::info( "Mapper Module {$refClass->getShortName()}", LogContext::Module );
