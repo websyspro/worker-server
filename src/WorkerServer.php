@@ -247,10 +247,10 @@ extends AbstractWorkerServer
           );
           
         }
-
-        // clear ControllerPaths
-        $controllerPaths = [];
       }
+
+      // clear ControllerPaths after processing all request types for this method
+      $controllerPaths = [];
     }
 
     return $this;

@@ -30,8 +30,7 @@ extends Middleware
 
     if( $payload === null ){
       return Response::json([
-        "message" => "Unauthorized",
-        "error" => "Valid Bearer token is required"
+        "message" => "Unauthorized"
       ], 401);
     }
 
