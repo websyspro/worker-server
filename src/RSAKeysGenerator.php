@@ -4,7 +4,7 @@ namespace Websyspro\WorkerServer;
 
 use Websyspro\WorkerServer\Enums\LogContext;
 
-class JwtKeyManager
+class RSAKeysGenerator
 {
   private const string KEYS_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'Keys';
   private const string PRIVATE_KEY_FILE = 'private.pem';
