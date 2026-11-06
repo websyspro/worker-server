@@ -2,11 +2,11 @@
 
 namespace Websyspro\WorkerServer;
 
+use Websyspro\Logger\Terminal;
 use Websyspro\WorkerServer\Enums\LogContext;
 use function date;
 use function microtime;
 use function round;
-use function sprintf;
 
 class Logger
 {
@@ -16,46 +16,28 @@ class Logger
     string $message,
     LogContext|null $context = null
   ): void {
-    static::log('INFO ', "\033[32m", $message, $context);
+    static::log( 'INFO', 'green', $message, $context );
   }
 
   public static function error(
     string $message,
     LogContext|null $context = null
   ): void {
-    static::log('ERROR', "\033[31m", $message, $context);
+    static::log( 'ERROR', 'red', $message, $context );
   }
 
   public static function warn(
     string $message,
     LogContext|null $context = null
   ): void {
-    static::log('WARN ', "\033[33m", $message, $context);
+    static::log( 'WARN', 'yellow', $message, $context );
   }
 
   public static function debug(
     string $message,
     LogContext|null $context = null
   ): void {
-    static::log('DEBUG', "\033[36m", $message, $context);
-  }
-
-  // Formata o header do log
-  // Sem contexto: "[2026-11-06 00:01:50] INFO "
-  // Com contexto: "[2026-11-06 00:01:50] [Module] INFO "
-  private static function formatLevel(
-    string $level,
-    LogContext|null $context,
-    string $timestamp
-  ): string {
-    if( $context === null ){
-      return "[{$timestamp}] {$level}";
-    }
-
-    $yellow = "\033[33m";
-    $reset  = "\033[0m";
-
-    return "[{$timestamp}] {$yellow}[{$context->value}]{$reset} {$level}";
+    static::log( 'DEBUG', 'cyan', $message, $context );
   }
 
   private static function log(
@@ -64,33 +46,36 @@ class Logger
     string $message,
     LogContext|null $context = null
   ): void {
-    // No modo Apache (isWorker=false), logs vão para error_log em vez de stdout
-    if( defined('SERVER_TOOLS') && isset( SERVER_TOOLS['isWorker'] ) && SERVER_TOOLS['isWorker'] === false ){
-      $formattedLevel = static::formatLevel( $level, $context, date('Y-m-d H:i:s') );
-      error_log( "{$formattedLevel} $message" );
-      return;
-    }
-
-    $now  = microtime(true);
+    $now  = microtime( true );
     $diff = static::$lastTime > 0
-      ? round(($now - static::$lastTime) * 1000)
+      ? round(( $now - static::$lastTime ) * 1000 )
       : 0;
 
     static::$lastTime = $now;
 
-    $timestamp      = date('Y-m-d H:i:s');
-    $formattedLevel = static::formatLevel( $level, $context, $timestamp );
-    $reset          = "\033[0m";
+    $timestamp = date( 'Y-m-d H:i:s' );
 
-    echo sprintf(
-      "%s%s%s %s %s+%sms%s\n",
-      $color,
-      $formattedLevel,
-      $reset,
-      $message,
-      $color,
-      $diff,
-      $reset
-    );
+    // No modo Apache (isWorker=false), logs vão para error_log em vez de stdout
+    if( defined('SERVER_TOOLS') && isset( SERVER_TOOLS['isWorker'] ) && SERVER_TOOLS['isWorker'] === false ){
+      $contextLabel = $context !== null ? " [{$context->value}]" : "";
+      error_log( "[{$timestamp}]{$contextLabel} {$level} {$message}" );
+      return;
+    }
+
+    $t = Terminal::init();
+
+    // [timestamp]
+    $t->text( "[{$timestamp}]" );
+
+    // [Context] em amarelo (opcional)
+    if( $context !== null ){
+      $t->text( " " )->yellow( "[{$context->value}]" );
+    }
+
+    // LEVEL na cor do nível
+    $t->text( " " )->{$color}( $level );
+
+    // mensagem e +Xms
+    $t->text( "  {$message} " )->{$color}( "+{$diff}ms" )->eof();
   }
 }
