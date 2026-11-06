@@ -5,7 +5,7 @@ namespace Websyspro\WorkerServer;
 use Websyspro\WorkerServer\Enums\LogContext;
 use RuntimeException;
 
-class RSAKeysGenerator
+class RsaKeysGenerator
 {
   private const string KEYS_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'Keys';
   private const string PRIVATE_KEY_FILE = 'private.pem';

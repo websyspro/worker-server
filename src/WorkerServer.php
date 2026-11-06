@@ -218,10 +218,11 @@ extends AbstractWorkerServer
           );
 
           $schemaManage->asyncEntity();
-          $schemaManageScripts = [
-            ...$schemaManageScripts,
-            ...$schemaManage->commandScritps
-          ];
+          foreach( $schemaManage->commandScritps as $commandScript ){
+            if( $commandScript instanceof CommandScript ){
+              Logger::info( $commandScript->message, LogContext::Database );
+            }
+          }
         }
 
         foreach( $module->entities as $schemaManage ){
@@ -232,10 +233,11 @@ extends AbstractWorkerServer
           );
 
           $schemaManage->asyncConstraint();
-          $schemaManageScripts = [
-            ...$schemaManageScripts,
-            ...$schemaManage->commandScritps
-          ];
+          foreach( $schemaManage->commandScritps as $commandScript ){
+            if( $commandScript instanceof CommandScript ){
+              Logger::info( $commandScript->message, LogContext::Database );
+            }
+          }
         }
 
         foreach( $schemaManageScripts as $commandScript ){

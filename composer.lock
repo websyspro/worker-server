@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c6ae092ee41dcf06240bf3707c1b31c8",
+    "content-hash": "79819f2dc412b2c37b0dbf839cd59df8",
     "packages": [
         {
             "name": "websyspro/arrowtosql",
@@ -140,16 +140,16 @@
         },
         {
             "name": "websyspro/entity",
-            "version": "1.0.115",
+            "version": "1.0.116",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/entity.git",
-                "reference": "33301f17135544679da14bc24677cb9b1c669862"
+                "reference": "2a6b308be2329f49e0f033b1a6ffff80172706f9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/entity/zipball/33301f17135544679da14bc24677cb9b1c669862",
-                "reference": "33301f17135544679da14bc24677cb9b1c669862",
+                "url": "https://api.github.com/repos/websyspro/entity/zipball/2a6b308be2329f49e0f033b1a6ffff80172706f9",
+                "reference": "2a6b308be2329f49e0f033b1a6ffff80172706f9",
                 "shasum": ""
             },
             "require": {
@@ -176,9 +176,9 @@
             "description": "Library for managing controllers and services",
             "support": {
                 "issues": "https://github.com/websyspro/entity/issues",
-                "source": "https://github.com/websyspro/entity/tree/1.0.115"
+                "source": "https://github.com/websyspro/entity/tree/1.0.116"
             },
-            "time": "2026-11-03T23:59:30+00:00"
+            "time": "2026-11-06T21:17:40+00:00"
         },
         {
             "name": "websyspro/logger",
