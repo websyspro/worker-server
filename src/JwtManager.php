@@ -13,7 +13,7 @@ class JwtManager
   private string $issuer;
 
   public function __construct(
-    RSAKeysGenerator $rsaKeysGenerator,
+    RsaKeysGenerator $rsaKeysGenerator,
     int    $ttl    = 3600,   // 1 hora por padrão
     string $issuer = 'worker-server'
   ){
