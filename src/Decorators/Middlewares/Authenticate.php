@@ -20,8 +20,9 @@ extends Middleware
   ): Response|null {
     $authorization = $request->headers['authorization'] ?? null;
 
-    /** @var JwtManager $jwtManager */
-    $jwtManager = Container::make( JwtManager::class );
+    $jwtManager = Container::make(
+      JwtManager::class
+    );
 
     $token   = $jwtManager->extractFromBearer( $authorization );
     $payload = $token !== null
@@ -30,13 +31,11 @@ extends Middleware
 
     if( $payload === null ){
       return Response::json([
-        "message" => "Unauthorized"
+        "message" => "Unauthorized access."
       ], 401);
     }
 
-    // Injeta o payload do JWT no request para uso nos controllers
     $request->user = $payload;
-
     return $next( $request );
   }
 }
