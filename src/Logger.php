@@ -41,22 +41,22 @@ class Logger
   }
 
   // Formata o level injetando o contexto no meio da palavra
-  // Ex: INFO  + Controller → I[Controller]NFO
-  //     ERROR + Service    → E[Service]RROR
-  //     WARN  + Module     → W[Module]ARN
-  //     DEBUG + Database   → D[Database]EBUG
+  // Sem contexto: "INFO " → "[2026-11-06 00:01:50] INFO  message"
+  // Com contexto: "INFO " + Module → "[2026-11-06 00:01:50]I[Module]NFO  message"
   private static function formatLevel(
     string $level,
-    LogContext|null $context
+    LogContext|null $context,
+    string $timestamp
   ): string {
     if( $context === null ){
-      return $level;
+      return "[{$timestamp}] {$level}";
     }
 
-    $label = $context->value;
-    return substr( $level, 0, 1 )
-      . "[{$label}]"
-      . ltrim( substr( $level, 1 ) );
+    $label  = $context->value;
+    $first  = substr( $level, 0, 1 );
+    $rest   = ltrim( substr( $level, 1 ) );
+
+    return "[{$timestamp}]{$first}[{$label}]{$rest}";
   }
 
   private static function log(
@@ -67,8 +67,8 @@ class Logger
   ): void {
     // No modo Apache (isWorker=false), logs vão para error_log em vez de stdout
     if( defined('SERVER_TOOLS') && isset( SERVER_TOOLS['isWorker'] ) && SERVER_TOOLS['isWorker'] === false ){
-      $formattedLevel = static::formatLevel( $level, $context );
-      error_log( "[{$formattedLevel}] $message" );
+      $formattedLevel = static::formatLevel( $level, $context, date('Y-m-d H:i:s') );
+      error_log( "{$formattedLevel} $message" );
       return;
     }
 
@@ -80,13 +80,12 @@ class Logger
     static::$lastTime = $now;
 
     $timestamp      = date('Y-m-d H:i:s');
-    $formattedLevel = static::formatLevel( $level, $context );
+    $formattedLevel = static::formatLevel( $level, $context, $timestamp );
     $reset          = "\033[0m";
 
     echo sprintf(
-      "%s[%s] %s%s %s %s+%sms%s\n",
+      "%s%s%s %s %s+%sms%s\n",
       $color,
-      $timestamp,
       $formattedLevel,
       $reset,
       $message,
