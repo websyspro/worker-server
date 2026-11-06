@@ -6,9 +6,9 @@ use Websyspro\WorkerServer\Enums\LogContext;
 
 class JwtKeyManager
 {
-  private const KEYS_DIR         = __DIR__ . DIRECTORY_SEPARATOR . 'keys';
-  private const PRIVATE_KEY_FILE = 'private.pem';
-  private const PUBLIC_KEY_FILE  = 'public.pem';
+  private const string KEYS_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'keys';
+  private const string PRIVATE_KEY_FILE = 'private.pem';
+  private const string PUBLIC_KEY_FILE  = 'public.pem';
 
   private string $privateKeyPath;
   private string $publicKeyPath;
@@ -50,13 +50,23 @@ class JwtKeyManager
 
   private function generateKeys(
   ): void {
-    $keypair = openssl_pkey_new([
+    $config = [
       'private_key_bits' => 2048,
       'private_key_type' => OPENSSL_KEYTYPE_RSA,
-    ]);
+      'config'           => $this->findOpensslConf(),
+    ];
 
-    openssl_pkey_export( $keypair, $privateKey );
-    $details   = openssl_pkey_get_details( $keypair );
+    $keypair = openssl_pkey_new( $config );
+
+    if( $keypair === false ){
+      throw new \RuntimeException(
+        "openssl_pkey_new() failed. Check that the openssl extension is enabled and openssl.cnf is accessible.\n"
+        . implode( "\n", array_map( fn($e) => $e, openssl_error_string() ? [ openssl_error_string() ] : [] ) )
+      );
+    }
+
+    openssl_pkey_export( $keypair, $privateKey, null, $config );
+    $details = openssl_pkey_get_details( $keypair );
     $publicKey = $details['key'];
 
     file_put_contents( $this->privateKeyPath, $privateKey );
@@ -64,6 +74,32 @@ class JwtKeyManager
 
     $this->privateKey = $privateKey;
     $this->publicKey  = $publicKey;
+  }
+
+  // Localiza o openssl.cnf automaticamente (Windows e Linux)
+  private function findOpensslConf(
+  ): string|null {
+    // Variável de ambiente definida pelo usuário
+    if( getenv('OPENSSL_CONF') ){
+      return getenv('OPENSSL_CONF');
+    }
+
+    // Caminhos comuns no Windows
+    $windowsPaths = [
+      'C:\\Program Files\\Common Files\\SSL\\openssl.cnf',
+      'C:\\Program Files (x86)\\Common Files\\SSL\\openssl.cnf',
+      'C:\\xampp\\apache\\conf\\openssl.cnf',
+      'C:\\laragon\\bin\\apache\\httpd-2.4.54-win64-VS16\\conf\\openssl.cnf',
+    ];
+
+    foreach( $windowsPaths as $path ){
+      if( file_exists( $path ) ){
+        return $path;
+      }
+    }
+
+    // No Linux o openssl geralmente encontra sozinho
+    return null;
   }
 
   private function loadKeys(
