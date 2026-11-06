@@ -4,6 +4,22 @@ namespace Websyspro\WorkerServer;
 
 use InvalidArgumentException;
 use stdClass;
+use Websyspro\Connection\Database;
+use Websyspro\Connection\Enums\DriverType;
+use Websyspro\Entity\Interfaces\CommandScript;
+use Websyspro\Entity\Schemas\AbstractSchemaManager;
+use Websyspro\Entity\Schemas\MySqlEntityStructure;
+use Websyspro\Entity\Schemas\MySqlEntityStructurePersisteds;
+use Websyspro\Entity\Schemas\MySqlSchemaManager;
+use Websyspro\Entity\Schemas\PostgresEntityStructure;
+use Websyspro\Entity\Schemas\PostgresEntityStructurePersisteds;
+use Websyspro\Entity\Schemas\PostgresSchemaManager;
+use Websyspro\Entity\Schemas\SqLiteEntityStructure;
+use Websyspro\Entity\Schemas\SqLiteEntityStructurePersisteds;
+use Websyspro\Entity\Schemas\SqLiteSchemaManager;
+use Websyspro\Entity\Schemas\SqlServerEntityStructure;
+use Websyspro\Entity\Schemas\SqlServerEntityStructurePersisteds;
+use Websyspro\Entity\Schemas\SqlServerSchemaManager;
 use Websyspro\Utils\Collection;
 use Websyspro\WorkerServer\Enums\LogContext;
 use Websyspro\WorkerServer\Enums\RequestMethod;
@@ -164,6 +180,25 @@ extends AbstractWorkerServer
     );
   }
 
+  private function schemaManager(
+  ReflectionClass $rf
+): AbstractSchemaManager {
+  return match( Database::driver() ){
+    DriverType::MySql => new MySqlSchemaManager( 
+      new MySqlEntityStructure($rf), new MySqlEntityStructurePersisteds($rf)
+    ),
+    DriverType::Postgres => new PostgresSchemaManager(
+      new PostgresEntityStructure($rf), new PostgresEntityStructurePersisteds($rf)
+    ),
+    DriverType::SqlServer => new SqlServerSchemaManager(
+      new SqlServerEntityStructure($rf), new SqlServerEntityStructurePersisteds($rf)
+    ),
+    DriverType::SqLite => new SqLiteSchemaManager( 
+      new SqLiteEntityStructure($rf), new SqLiteEntityStructurePersisteds($rf)
+    )
+  };
+}
+
   public function registerModules(
     mixed ...$modules
   ): WorkerServer {
@@ -173,19 +208,37 @@ extends AbstractWorkerServer
       $prefix = Module::getPrefix( $refClass );
 
       if( $module instanceof Module ){
-        // Passagem 1 — cria/sincroniza tabelas sem FKs
-        // $schema = SchemaManager::create();
         foreach( $module->entities as $entityClass ){
-          // $schema->syncTable($entityClass);
+          $schemaManage = $this->schemaManager( 
+            new ReflectionClass( 
+              $entityClass
+            )
+          );
+
+          $schemaManage->asyncEntity();
+          foreach( $schemaManage->commandScritps as $commandScript ){
+            if( $commandScript instanceof CommandScript ){
+              Logger::info( $commandScript->message, LogContext::Database );
+            }
+          }
         }
 
-        // Passagem 2 — aplica FKs após todas as tabelas existirem
         foreach( $module->entities as $entityClass ){
-          // $schema->applyForeignKeys($entityClass);
+          $schemaManage = $this->schemaManager( 
+            new ReflectionClass( 
+              $entityClass
+            )
+          );
+
+          $schemaManage->asyncConstraint();
+          foreach( $schemaManage->commandScritps as $commandScript ){
+            if( $commandScript instanceof CommandScript ){
+              Logger::info( $commandScript->message, LogContext::Database );
+            }
+          }          
         }
 
         Logger::info( "Mapper Module {$refClass->getShortName()}", LogContext::Module );
-
         foreach( $module->controllers as $class ){
           $this->register( $class, $prefix );
         }        
