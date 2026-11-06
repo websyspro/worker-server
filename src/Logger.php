@@ -65,17 +65,17 @@ class Logger
     $t = Terminal::init();
 
     // [timestamp]
-    $t->text( "[{$timestamp}]" );
+    $t->green( "[WorkerServer] [{$timestamp}]" );
 
     // [Context] em amarelo (opcional)
     if( $context !== null ){
-      $t->text( " " )->yellow( "[{$context->value}]" );
+      $t->spc()->text( "[{$context->value}]" );
     }
 
     // LEVEL na cor do nível
-    $t->text( " " )->{$color}( $level );
+    $t->spc()->{$color}( $level );
 
     // mensagem e +Xms
-    $t->text( "  {$message} " )->{$color}( "+{$diff}ms" )->eof();
+    $t->spc()->text( "{$message}" )->spc()->{$color}( "+{$diff}ms" )->eof();
   }
 }
