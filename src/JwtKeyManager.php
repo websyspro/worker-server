@@ -53,7 +53,7 @@ class JwtKeyManager
     $config = [
       'private_key_bits' => 2048,
       'private_key_type' => OPENSSL_KEYTYPE_RSA,
-      'config'           => $this->findOpensslConf(),
+      'config' => $this->findOpensslConf(),
     ];
 
     $keypair = openssl_pkey_new( $config );
@@ -86,6 +86,7 @@ class JwtKeyManager
 
     // Caminhos comuns no Windows
     $windowsPaths = [
+      'D:\\01-Servidor\\php\\extras\\ssl\\openssl.cnf',
       'C:\\Program Files\\Common Files\\SSL\\openssl.cnf',
       'C:\\Program Files (x86)\\Common Files\\SSL\\openssl.cnf',
       'C:\\xampp\\apache\\conf\\openssl.cnf',
