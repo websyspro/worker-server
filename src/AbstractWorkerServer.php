@@ -4,6 +4,7 @@ namespace Websyspro\WorkerServer;
 
 use Websyspro\WorkerServer\Interfaces\ServerTools;
 use Websyspro\WorkerServer\Enums\LogContext;
+use Websyspro\WorkerServer\JwtKeyManager;
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Response;
 use Websyspro\WorkerServer\Logger;
@@ -36,6 +37,7 @@ use const PHP_OS_FAMILY;
 
 abstract class AbstractWorkerServer
 {
+  public JwtKeyManager $jwtKeyManager;
   public ServerTools $serverTools;
   public string $host;
   public int $port;
@@ -51,6 +53,9 @@ abstract class AbstractWorkerServer
   ){
     /* define Server Tools */
     $this->serverTools = $this->getServerTools();
+
+    /* define JWT Keys */
+    $this->jwtKeyManager = ( new JwtKeyManager() )->boot();
 
     /* define Servers */
     $this->keepAliveTimeout = $this->serverTools->keepAliveTimeout;
