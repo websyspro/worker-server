@@ -18,13 +18,15 @@ extends Middleware
     Request $request,
     Closure $next
   ): Response|null {
-    $authorization = $request->headers['authorization'] ?? null;
+    $authorization = $request->headers[
+      "authorization"
+    ] ?? null;
 
     $jwtManager = Container::make(
       JwtManager::class
     );
 
-    $token   = $jwtManager->extractFromBearer( $authorization );
+    $token = $jwtManager->extractFromBearer( $authorization );
     $payload = $token !== null
       ? $jwtManager->verify( $token )
       : null;
