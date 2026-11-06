@@ -5,6 +5,7 @@ namespace Websyspro\WorkerServer;
 use InvalidArgumentException;
 use stdClass;
 use Websyspro\Utils\Collection;
+use Websyspro\WorkerServer\Enums\LogContext;
 use Websyspro\WorkerServer\Enums\RequestMethod;
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Container;
@@ -59,7 +60,7 @@ extends AbstractWorkerServer
       }
 
       $this->middlewares[] = $middleware;
-      Logger::info( "Global Middleware -> " . (new ReflectionClass($middleware))->getShortName());
+      Logger::info( "Global Middleware -> " . (new ReflectionClass($middleware))->getShortName(), LogContext::Middleware);
     }
     
     return $this;
@@ -79,7 +80,7 @@ extends AbstractWorkerServer
       $handler, $middlewares,
     ];
 
-    Logger::info( "Mapper {{$this->prefix}/{$path}, {$method}} route" );
+    Logger::info( "Mapper {{$this->prefix}/{$path}, {$method}} route", LogContext::Route );
     return $this;
   }
 
@@ -183,7 +184,7 @@ extends AbstractWorkerServer
           // $schema->applyForeignKeys($entityClass);
         }
 
-        Logger::info( "Mapper Module {$refClass->getShortName()}" );
+        Logger::info( "Mapper Module {$refClass->getShortName()}", LogContext::Module );
 
         foreach( $module->controllers as $class ){
           $this->register( $class, $prefix );
@@ -218,7 +219,7 @@ extends AbstractWorkerServer
 
 
 
-    Logger::info("{$refClass->getShortName()} {{$this->prefix}/{$prefix}/{$controllerPrefix}}");
+    Logger::info("{$refClass->getShortName()} {{$this->prefix}/{$prefix}/{$controllerPrefix}}", LogContext::Controller);
     
     foreach( Controller::getMethodsPublics( $refClass ) as $refMethod ) {
       $controllerPaths[] = $prefix;
@@ -445,7 +446,7 @@ extends AbstractWorkerServer
         $error->getMessage(),
         $error->getFile(),
         $error->getLine()
-      ));
+      ), LogContext::Controller);
 
       return Response::json([ 
         "message" => "Internal Server Error"
@@ -457,7 +458,7 @@ extends AbstractWorkerServer
         $error->getMessage(),
         $error->getFile(),
         $error->getLine()
-      ));
+      ), LogContext::Controller);
 
       return Response::json([ 
         "message" => "Internal Server Error"

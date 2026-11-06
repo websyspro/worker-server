@@ -3,6 +3,7 @@
 namespace Websyspro\WorkerServer;
 
 use Websyspro\WorkerServer\Interfaces\ServerTools;
+use Websyspro\WorkerServer\Enums\LogContext;
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Response;
 use Websyspro\WorkerServer\Logger;
@@ -124,7 +125,7 @@ abstract class AbstractWorkerServer
     int $requestCount = 0,
     array $clients = []
   ): void {
-    Logger::info( "Worker $workerId iniciado (PID: " . getmypid() . ")" );
+    Logger::info( "Worker $workerId iniciado (PID: " . getmypid() . ")", LogContext::Worker );
 
     while( true ){
       $sockets = array_column( $clients, "socket" );
@@ -156,7 +157,7 @@ abstract class AbstractWorkerServer
           ];
             
           $addr = stream_socket_get_name( $client, true );
-          Logger::info("[Worker $workerId] Conexao de $addr (total: " . count($clients) . ")");
+          Logger::info("[Worker $workerId] Conexao de $addr (total: " . count($clients) . ")", LogContext::Worker);
         }
 
         unset( $read[ array_search( $this->server, $read )]);
@@ -178,7 +179,7 @@ abstract class AbstractWorkerServer
           fclose($socket);
           unset($clients[$id]);
           
-          Logger::info("[Worker $workerId] Desconectou (restam: " . count($clients) . ")");
+          Logger::info("[Worker $workerId] Desconectou (restam: " . count($clients) . ")", LogContext::Worker);
           continue;
         }
 
@@ -201,13 +202,13 @@ abstract class AbstractWorkerServer
 
           fwrite( $socket, $response->build( $keepAlive ));
 
-          Logger::info("[Worker $workerId] {$request['firstLine']} (keep-alive: " . ($keepAlive ? 'sim' : 'nao') . ")");
+          Logger::info("[Worker $workerId] {$request['firstLine']} (keep-alive: " . ($keepAlive ? 'sim' : 'nao') . ")", LogContext::Worker);
 
           $clients[$id]['buffer'] = $request['remaining'];
 
           $requestCount++;
           if( $requestCount >= $this->maxRequests ){
-            Logger::warn("[Worker $workerId] Limite de {$this->maxRequests} requisicoes atingido, encerrando...");
+            Logger::warn("[Worker $workerId] Limite de {$this->maxRequests} requisicoes atingido, encerrando...", LogContext::Worker);
             foreach( $clients as $info ){
               fclose($info['socket']);
             }
@@ -230,7 +231,7 @@ abstract class AbstractWorkerServer
           fclose($info['socket']);
           unset($clients[$id]);
           
-          Logger::warn("[Worker $workerId] Conexao idle fechada por timeout");
+          Logger::warn("[Worker $workerId] Conexao idle fechada por timeout", LogContext::Worker);
         }
       }
     }
@@ -307,11 +308,11 @@ abstract class AbstractWorkerServer
 
   private function startSingleProcess(): void
   {
-    Logger::info( "Master PID: " . getmypid() );
-    Logger::info( "Porta: {$this->port}" );
-    Logger::info( "Modo: single-process (Windows)" );
-    Logger::info( "Keep-Alive: {$this->keepAliveTimeout}s" );
-    Logger::info( "Server running on http://{$this->host}:{$this->port}" );
+    Logger::info( "Master PID: " . getmypid(), LogContext::Worker );
+    Logger::info( "Porta: {$this->port}", LogContext::Worker );
+    Logger::info( "Modo: single-process (Windows)", LogContext::Worker );
+    Logger::info( "Keep-Alive: {$this->keepAliveTimeout}s", LogContext::Worker );
+    Logger::info( "Server running on http://{$this->host}:{$this->port}", LogContext::Worker );
 
     $this->runWorker(1);
   }
@@ -319,12 +320,12 @@ abstract class AbstractWorkerServer
   private function startMultiProcess(
   ): void {
     if( function_exists( "pcntl_fork" ) && function_exists( "pcntl_wait" ) && defined( "WNOHANG" )){
-      Logger::info( "Master PID: " . getmypid());
-      Logger::info( "Porta: {$this->port}" );
-      Logger::info( "Workers: {$this->workers}" );
-      Logger::info( "Keep-Alive: {$this->keepAliveTimeout}s" );
-      Logger::info( "Max Requests: {$this->maxRequests}" );
-      Logger::info( "Server running on http://{$this->host}:{$this->port}" );
+      Logger::info( "Master PID: " . getmypid(), LogContext::Worker);
+      Logger::info( "Porta: {$this->port}", LogContext::Worker );
+      Logger::info( "Workers: {$this->workers}", LogContext::Worker );
+      Logger::info( "Keep-Alive: {$this->keepAliveTimeout}s", LogContext::Worker );
+      Logger::info( "Max Requests: {$this->maxRequests}", LogContext::Worker );
+      Logger::info( "Server running on http://{$this->host}:{$this->port}", LogContext::Worker );
 
       for($i = 0; $i < $this->workers; $i++){
         $pid = pcntl_fork();
@@ -353,7 +354,7 @@ abstract class AbstractWorkerServer
             $pid, $this->pids
           );
 
-          Logger::warn( "Worker PID $pid morreu, reiniciando..." );
+          Logger::warn( "Worker PID $pid morreu, reiniciando...", LogContext::Worker );
           $newPid = pcntl_fork();
           
           if( $newPid === 0 ){
