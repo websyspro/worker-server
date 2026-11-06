@@ -2,42 +2,42 @@
 
 namespace Websyspro\WorkerServer\Decorators\Middlewares;
 
+use Websyspro\WorkerServer\Container;
+use Websyspro\WorkerServer\JwtManager;
 use Websyspro\WorkerServer\Middleware;
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Response;
-use Websyspro\WorkerServer\Container;
-use Websyspro\WorkerServer\Interfaces\IAuthenticationHandler;
 use Attribute;
-use Throwable;
 use Closure;
 
 #[Attribute(Attribute::TARGET_CLASS)]
-class Authenticate 
+class Authenticate
 extends Middleware
 {
   public function execute(
-    Request $request, 
+    Request $request,
     Closure $next
   ): Response|null {
-    // Tenta obter o AuthenticationHandler do Container
-    try {
-      $authHandler = Container::make(IAuthenticationHandler::class);
-      
-      if (!$authHandler->validate($request)) {
-        return Response::json([
-          "message" => "Unauthorized",
-          "error" => "Valid Bearer token is required"
-        ], 401);
-      }
-    } catch ( Throwable $e) {
-      // Se não conseguir obter o handler, retorna erro
+    $authorization = $request->headers['authorization'] ?? null;
+
+    /** @var JwtManager $jwtManager */
+    $jwtManager = Container::make( JwtManager::class );
+
+    $token   = $jwtManager->extractFromBearer( $authorization );
+    $payload = $token !== null
+      ? $jwtManager->verify( $token )
+      : null;
+
+    if( $payload === null ){
       return Response::json([
         "message" => "Unauthorized",
-        "error" => "Authentication handler not configured"
+        "error" => "Valid Bearer token is required"
       ], 401);
     }
 
-    // Autenticação bem-sucedida, continua para o próximo middleware
-    return $next($request);
+    // Injeta o payload do JWT no request para uso nos controllers
+    $request->user = $payload;
+
+    return $next( $request );
   }
 }

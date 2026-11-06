@@ -5,6 +5,8 @@ namespace Websyspro\WorkerServer;
 use Websyspro\WorkerServer\Interfaces\ServerTools;
 use Websyspro\WorkerServer\Enums\LogContext;
 use Websyspro\WorkerServer\RSAKeysGenerator;
+use Websyspro\WorkerServer\JwtManager;
+use Websyspro\WorkerServer\Container;
 use Websyspro\WorkerServer\Request;
 use Websyspro\WorkerServer\Response;
 use Websyspro\WorkerServer\Logger;
@@ -38,6 +40,7 @@ use const PHP_OS_FAMILY;
 abstract class AbstractWorkerServer
 {
   public RSAKeysGenerator $rsaKeysGenerator;
+  public JwtManager       $jwtManager;
   public ServerTools $serverTools;
   public string $host;
   public int $port;
@@ -56,6 +59,12 @@ abstract class AbstractWorkerServer
 
     /* define JWT Keys */
     $this->rsaKeysGenerator = ( new RSAKeysGenerator() )->boot();
+
+    /* define JWT Manager */
+    $this->jwtManager = new JwtManager( $this->rsaKeysGenerator );
+
+    /* registra JwtManager como singleton no Container */
+    Container::singleton( JwtManager::class, $this->jwtManager );
 
     /* define Servers */
     $this->keepAliveTimeout = $this->serverTools->keepAliveTimeout;

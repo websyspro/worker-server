@@ -38,6 +38,7 @@ class Request
   public readonly array  $params;
   public readonly mixed  $body;
   public readonly array  $files;
+  public mixed           $user = null;  // payload JWT injetado pelo Authenticate
 
   public function __construct(
     array $parsed, array $params = []
