@@ -52,10 +52,8 @@ class Logger
       : 0;
 
     static::$lastTime = $now;
-
     $timestamp = date( 'Y-m-d H:i:s' );
 
-    // No modo Apache (isWorker=false), logs vão para error_log em vez de stdout
     if( defined('SERVER_TOOLS') && isset( SERVER_TOOLS['isWorker'] ) && SERVER_TOOLS['isWorker'] === false ){
       $contextLabel = $context !== null ? " [{$context->value}]" : "";
       error_log( "[{$timestamp}]{$contextLabel} {$level} {$message}" );
@@ -64,18 +62,13 @@ class Logger
 
     $t = Terminal::init();
 
-    // [timestamp]
     $t->green( "[WorkerServer] [{$timestamp}]" );
 
-    // [Context] em amarelo (opcional)
     if( $context !== null ){
       $t->spc()->text( "[{$context->value}]" );
     }
 
-    // LEVEL na cor do nível
     $t->spc()->{$color}( $level );
-
-    // mensagem e +Xms
     $t->spc()->text( "{$message}" )->spc()->{$color}( "+{$diff}ms" )->eof();
   }
 }
