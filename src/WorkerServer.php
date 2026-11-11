@@ -424,7 +424,8 @@ extends AbstractWorkerServer
     if( $value instanceof stdClass ){
       $normalized = new stdClass();
       foreach( $value as $key => $prop ){
-        $normalized->{ $key } = $this->resultNormalized( $prop );
+        $camelKey = lcfirst( $key );
+        $normalized->{ $camelKey } = $this->resultNormalized( $prop );
       }
       return $normalized;
     }
