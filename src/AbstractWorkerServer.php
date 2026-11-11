@@ -55,32 +55,18 @@ abstract class AbstractWorkerServer
   public function __construct(
   ){
     $this->setEnvInits();
-
-    /* define Server Tools */
-    $this->serverTools = $this->getServerTools();
+    $this->getServerTools();
 
     /* define JWT Keys */
-    $this->rsaKeysGenerator = ( new RSAKeysGenerator() )->boot();
-
-    /* define JWT Manager */
-    $this->jwtManager = new JwtManager( $this->rsaKeysGenerator );
+    $this->rsaKeysGenerator = new RSAKeysGenerator();
+    $this->jwtManager = new JwtManager( 
+      $this->rsaKeysGenerator->boot()
+    );
 
     /* registra JwtManager como singleton no Container */
     Container::singleton( 
-      JwtManager::class, 
-      $this->jwtManager
+      JwtManager::class, $this->jwtManager
     );
-
-    /* define Servers */
-    $this->keepAliveTimeout = $this->serverTools->keepAliveTimeout;
-    $this->maxRequests = $this->serverTools->maxRequests;
-    $this->apiVersion = $this->serverTools->apiVersion;
-    $this->port = $this->serverTools->port;
-    $this->host = $this->serverTools->host;
-    $this->isWorker = $this->serverTools->isWorker;
-
-    /* define Workers 1 */
-    $this->workers = max( 1, (int) shell_exec( "nproc" ));
   }
 
   private function setEnvInits(
@@ -91,19 +77,27 @@ abstract class AbstractWorkerServer
   }
 
   private function getServerTools(
-    ServerTools|null $serverTools = null
   ): ServerTools|null {
     if( defined( "BASE_DIR" ) === false ){
       return null;
     }
 
-    if( file_exists( BASE_DIR . "server-config.php" )){
-      require_once BASE_DIR . "server-config.php";
-      if( defined( "SERVER_TOOLS" ) ){
-        return new ServerTools( 
-          ...SERVER_TOOLS
-        );
-      }
+    if( file_exists( BASE_DIR . ".env" )){
+      $this->serverTools = new ServerTools( 
+        port: (int) getenv( "API_PORT" ),
+        apiVersion: (int) getenv( "API_VERSION" ),
+        maxRequests: (int) getenv( "API_MAX_REQUESTS" ),
+        keepAliveTimeout: (int) getenv( "API_KEEP_ALIVE_TIME_OUT" ),
+        isWorker: filter_var( getenv( "API_IS_WORKER" ), FILTER_VALIDATE_BOOLEAN ),
+      );
+
+      $this->keepAliveTimeout = $this->serverTools->keepAliveTimeout;
+      $this->maxRequests = $this->serverTools->maxRequests;
+      $this->apiVersion = $this->serverTools->apiVersion;
+      $this->port = $this->serverTools->port;
+      $this->host = $this->serverTools->host;
+      $this->isWorker = $this->serverTools->isWorker;
+      $this->workers = max( 1, (int) shell_exec( "nproc" ));      
     }
 
     return null;
