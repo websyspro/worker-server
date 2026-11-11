@@ -54,6 +54,8 @@ abstract class AbstractWorkerServer
 
   public function __construct(
   ){
+    $this->setEnvInits();
+
     /* define Server Tools */
     $this->serverTools = $this->getServerTools();
 
@@ -64,7 +66,10 @@ abstract class AbstractWorkerServer
     $this->jwtManager = new JwtManager( $this->rsaKeysGenerator );
 
     /* registra JwtManager como singleton no Container */
-    Container::singleton( JwtManager::class, $this->jwtManager );
+    Container::singleton( 
+      JwtManager::class, 
+      $this->jwtManager
+    );
 
     /* define Servers */
     $this->keepAliveTimeout = $this->serverTools->keepAliveTimeout;
@@ -76,6 +81,13 @@ abstract class AbstractWorkerServer
 
     /* define Workers 1 */
     $this->workers = max( 1, (int) shell_exec( "nproc" ));
+  }
+
+  private function setEnvInits(
+  ): void {
+    Env::init(
+      BASE_DIR . ".env"
+    );
   }
 
   private function getServerTools(
