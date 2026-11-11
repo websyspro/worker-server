@@ -1,6 +1,6 @@
 {
   "name": "websyspro/worker-server",
-  "version": "1.0.121",
+  "version": "1.0.122",
   "description": "Set of features in PHP for creating entitys for database",
   "minimum-stability": "dev",
   "prefer-stable": true,
@@ -11,6 +11,9 @@
       "Websyspro\\WorkerServer\\": "src/"
     }
   },
+  "bin": [
+    "bin/install"
+  ],
   "scripts": {
     "publish": "php vendor/bin/publish",
     "pub": "composer update && composer publish"
