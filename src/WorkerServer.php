@@ -21,6 +21,7 @@ use Websyspro\Entity\Schemas\SqlServerEntityStructure;
 use Websyspro\Entity\Schemas\SqlServerEntityStructurePersisteds;
 use Websyspro\Entity\Schemas\SqlServerSchemaManager;
 use Websyspro\Utils\Collection;
+use Websyspro\Entity\Decorators\EntityList;
 use Websyspro\WorkerServer\Enums\LogContext;
 use Websyspro\WorkerServer\Enums\RequestMethod;
 use Websyspro\WorkerServer\Request;
@@ -413,17 +414,25 @@ extends AbstractWorkerServer
   ): mixed {
     if( $value instanceof Collection ){
       return array_map(
-        fn( $item ) => (
-          $this->resultNormalized(
-            $item
-          )
-        ), $value->items
+        fn( $item ) => $this->resultNormalized( $item ),
+        $value->items
       );
     }
 
-    if( $value instanceof stdClass ){
+    if( $value instanceof EntityList ){
+      return array_map(
+        fn( $item ) => $this->resultNormalized( $item ),
+        $value->items
+      );
+    }
+
+    if( is_object( $value ) ){
+      if( $value instanceof \JsonSerializable ){
+        return $this->resultNormalized( $value->jsonSerialize() );
+      }
+
       $normalized = new stdClass();
-      foreach( $value as $key => $prop ){
+      foreach( get_object_vars( $value ) as $key => $prop ){
         $camelKey = lcfirst( $key );
         $normalized->{ $camelKey } = $this->resultNormalized( $prop );
       }
@@ -432,11 +441,7 @@ extends AbstractWorkerServer
 
     if( is_array( $value ) ){
       return array_map(
-        fn( $item ) => (
-          $this->resultNormalized( 
-            $item
-          )
-        ),
+        fn( $item ) => $this->resultNormalized( $item ),
         $value
       );
     }
