@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2e3a3946f0a8b8f804a164ab95922da8",
+    "content-hash": "ac98d5c723b54ccd23ec25c7de934177",
     "packages": [
         {
             "name": "websyspro/arrowtosql",
-            "version": "1.0.123",
+            "version": "1.0.125",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/arrowtosql.git",
-                "reference": "3eed305608bfbf220d00b74f870579c8c07fbc99"
+                "reference": "c60a21bbeddbcb2988c8f1f7753fc513c9f02f36"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/arrowtosql/zipball/3eed305608bfbf220d00b74f870579c8c07fbc99",
-                "reference": "3eed305608bfbf220d00b74f870579c8c07fbc99",
+                "url": "https://api.github.com/repos/websyspro/arrowtosql/zipball/c60a21bbeddbcb2988c8f1f7753fc513c9f02f36",
+                "reference": "c60a21bbeddbcb2988c8f1f7753fc513c9f02f36",
                 "shasum": ""
             },
             "require": {
@@ -47,9 +47,9 @@
             "description": "Convert Arrow FN into SQL queries",
             "support": {
                 "issues": "https://github.com/websyspro/arrowtosql/issues",
-                "source": "https://github.com/websyspro/arrowtosql/tree/1.0.123"
+                "source": "https://github.com/websyspro/arrowtosql/tree/1.0.125"
             },
-            "time": "2026-11-14T19:14:53+00:00"
+            "time": "2026-11-14T20:17:35+00:00"
         },
         {
             "name": "websyspro/connection",
@@ -182,16 +182,16 @@
         },
         {
             "name": "websyspro/logger",
-            "version": "1.0.40",
+            "version": "1.0.42",
             "source": {
                 "type": "git",
                 "url": "https://github.com/websyspro/logger.git",
-                "reference": "ded84a71ddf189b9d70dc21cb68eff7090b2632c"
+                "reference": "fb53beb9fb6b88f65241b4aa45d87c803027bc0f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/websyspro/logger/zipball/ded84a71ddf189b9d70dc21cb68eff7090b2632c",
-                "reference": "ded84a71ddf189b9d70dc21cb68eff7090b2632c",
+                "url": "https://api.github.com/repos/websyspro/logger/zipball/fb53beb9fb6b88f65241b4aa45d87c803027bc0f",
+                "reference": "fb53beb9fb6b88f65241b4aa45d87c803027bc0f",
                 "shasum": ""
             },
             "require": {
@@ -219,9 +219,9 @@
             "description": "Library for logs in server api",
             "support": {
                 "issues": "https://github.com/websyspro/logger/issues",
-                "source": "https://github.com/websyspro/logger/tree/1.0.40"
+                "source": "https://github.com/websyspro/logger/tree/1.0.42"
             },
-            "time": "2026-09-25T20:10:15+00:00"
+            "time": "2026-11-14T19:49:36+00:00"
         },
         {
             "name": "websyspro/package",

@@ -126,7 +126,7 @@ class Controller
   public static function getMethodInstance(
     ReflectionMethod $methodPublic,
     string $requestTypes  
-  ): Get|Post|Put|Patch|Delete|null {
+  ): Get|Post|Put|Patch|Delete|View|null {
     $refMethodPublic = $methodPublic->getAttributes(
       $requestTypes 
     );
@@ -153,7 +153,7 @@ class Controller
   }  
 
   public static function getMethodPath(
-    Get|Post|Put|Patch|Delete $methdoPublicInstance
+    Get|Post|Put|Patch|Delete|View $methdoPublicInstance
   ): string {
     return trim( $methdoPublicInstance->path, "/" );
   }  
@@ -175,7 +175,7 @@ class Controller
 
   public static function getRequestTypes(
   ): array {
-    return [ Get::class, Post::class, Put::class, Patch::class, Delete::class ];
+    return [ Get::class, Post::class, Put::class, Patch::class, Delete::class, View::class ];
   }
 
   public static function getRequestTypeName(

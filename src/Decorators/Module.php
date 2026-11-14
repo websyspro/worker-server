@@ -14,6 +14,7 @@ class Module
     public readonly array $controllers = [],
     public readonly array $entities = [],
     public readonly array $services = [],
+    public readonly array $controllersView = [],
   ){}
 
   public static function getInstance(

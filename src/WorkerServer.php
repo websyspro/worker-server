@@ -56,7 +56,9 @@ extends AbstractWorkerServer
 {
   private string $prefix;
   private array $routers = [];
+  private array $routersView = [];
   private array $middlewares = [];
+  private array $modulePaths = [];
 
   public function __construct(
   ){
@@ -101,6 +103,24 @@ extends AbstractWorkerServer
     return $this;
   }
 
+  private function registerViewRouter(
+    string $method,
+    string $path,
+    array $handler,
+    array $middlewares = []
+  ): WorkerServer {
+    $key = empty( $path ) || $path === "/"
+      ? sprintf( "%s /", $method )
+      : sprintf( "%s /%s", $method, trim( $path, "/" ) );
+
+    $this->routersView[ $key ] = [
+      $handler, $middlewares,
+    ];
+
+    Logger::info( "Mapper View {/{$path}, {$method}} route", LogContext::Route );
+    return $this;
+  }
+
   private function matchRoute(
     string $method, 
     string $requestPath,
@@ -131,6 +151,83 @@ extends AbstractWorkerServer
 
       [ $handler, $middlewares ] = $router;      
       return [ $handler, $params, $middlewares ];
+    }
+
+    return null;
+  }
+
+  private function matchViewRoute(
+    string $method,
+    string $requestPath,
+    array $paramNames = []
+  ): array|null {
+    foreach( $this->routersView as $key => $router ){
+      [ $routeMethod, $routePath ] = explode(
+        " ", $key, 2
+      );
+
+      if( $routeMethod !== $method ){
+        continue;
+      }
+
+      preg_match_all( "#:([a-zA-Z_]+)#", $routePath, $matches );
+      $paramNames = $matches[1];
+
+      $pattern = preg_replace( "#:([a-zA-Z_]+)#", '([^/]+)', $routePath );
+      $pattern = '#^' . $pattern . '$#';
+
+      if( !preg_match( $pattern, $requestPath, $values ) ){
+        continue;
+      }
+
+      $params = array_combine(
+        $paramNames, array_slice( $values, 1 )
+      ) ?: [];
+
+      [ $handler, $middlewares ] = $router;
+      return [ $handler, $params, $middlewares ];
+    }
+
+    return null;
+  }
+
+  private function serveAsset(
+    string $requestPath
+  ): Response|null {
+    foreach( $this->modulePaths as $modulePrefix => $modulePath ){
+      $assetPrefix = "/{$modulePrefix}/assets/";
+
+      if( !str_starts_with( $requestPath, $assetPrefix ) ){
+        continue;
+      }
+
+      $relativePath = substr( $requestPath, strlen( $assetPrefix ) );
+      $filePath     = rtrim( $modulePath, "/" ) . "/assets/" . $relativePath;
+
+      if( !file_exists( $filePath ) || !is_file( $filePath ) ){
+        continue;
+      }
+
+      $ext = strtolower( pathinfo( $filePath, PATHINFO_EXTENSION ) );
+      $mimeTypes = [
+        "css"   => "text/css",
+        "js"    => "application/javascript",
+        "png"   => "image/png",
+        "jpg"   => "image/jpeg",
+        "jpeg"  => "image/jpeg",
+        "gif"   => "image/gif",
+        "svg"   => "image/svg+xml",
+        "ico"   => "image/x-icon",
+        "woff"  => "font/woff",
+        "woff2" => "font/woff2",
+        "ttf"   => "font/ttf",
+        "eot"   => "application/vnd.ms-fontobject",
+      ];
+
+      $mime = $mimeTypes[ $ext ] ?? "application/octet-stream";
+      $content = file_get_contents( $filePath );
+
+      return ( new Response( 200, $content, [ "Content-Type" => $mime ] ) );
     }
 
     return null;
@@ -246,6 +343,12 @@ extends AbstractWorkerServer
         Logger::info( "Mapper Module {$refClass->getShortName()}", LogContext::Module );
         foreach( $module->controllers as $class ){
           $this->register( $class, $prefix );
+        }
+
+        foreach( $module->controllersView as $class ){
+          $moduleDir = dirname( ( new ReflectionClass( $strClass ) )->getFileName() );
+          $this->modulePaths[ $prefix ] = $moduleDir;
+          $this->registerView( $class, $prefix );
         }        
       }
     }
@@ -311,7 +414,48 @@ extends AbstractWorkerServer
     return $this;
   }
 
+  public function registerView(
+    string $class,
+    string|null $prefix = null,
+    array $controllerPaths = [],
+    array $controllerMiddlewares = []
+  ): WorkerServer {
+    $refClass = new ReflectionClass( $class );
 
+    $controller           = Controller::getInstance( $refClass );
+    $controllerPrefix     = Controller::getPrefix( $controller );
+    $controllerMiddlewares = Controller::getMiddlewaresFromController( $refClass );
+
+    Logger::info( "{$refClass->getShortName()} View {/{$prefix}/{$controllerPrefix}}", LogContext::Controller );
+
+    foreach( Controller::getMethodsPublics( $refClass ) as $refMethod ){
+      $controllerPaths[] = $prefix;
+      $controllerPaths[] = $controllerPrefix;
+
+      foreach( Controller::getMiddlewaresFromMethod( $refMethod ) as $methodMiddleware ){
+        $controllerMiddlewares[] = $methodMiddleware;
+      }
+
+      $methdoPublicInstance = Controller::getMethodInstance(
+        $refMethod, \Websyspro\WorkerServer\Decorators\View::class
+      );
+
+      if( $methdoPublicInstance ){
+        $controllerPaths[] = Controller::getMethodPath( $methdoPublicInstance );
+
+        $this->registerViewRouter(
+          RequestMethod::GET->name,
+          Controller::getJoinPahs( $controllerPaths ),
+          Controller::getHandler( $refClass, $refMethod ),
+          Controller::getMiddlewares( $refMethod, $controllerMiddlewares )
+        );
+      }
+
+      $controllerPaths = [];
+    }
+
+    return $this;
+  }
   public function getRoutes(
   ): array {
     return array_keys(
@@ -463,6 +607,52 @@ extends AbstractWorkerServer
     Request $request
   ): Response {
     try {
+      // 1. serve assets estáticos por módulo: /{modulePrefix}/assets/*
+      $asset = $this->serveAsset( $request->path );
+      if( $asset !== null ){
+        return $asset;
+      }
+
+      // 2. tenta rotas de view (HTML)
+      $matchView = $this->matchViewRoute(
+        $request->method,
+        $request->path
+      );
+
+      if( $matchView !== null ){
+        [ $handler, $params, $middlewares ] = $matchView;
+
+        $nextHandler = function( Request $request ) use ( $handler, $params ): Response {
+          if( sizeof( $handler ) === 2 ){
+            [ $refClass, $refMethod ] = $handler;
+            $handler = [
+              Closure::fromCallable([
+                Container::make( $refClass ), $refMethod
+              ])
+            ];
+          }
+
+          [ $callableHandler ] = $handler;
+
+          ob_start();
+          $result = $callableHandler(
+            ...$this->resolveArgs(
+              $callableHandler,
+              $request->withParams( $params )
+            )
+          );
+          $output = ob_get_clean();
+
+          // se retornou string usa direto, senão usa o que foi impresso (App faz print)
+          $html = is_string( $result ) && $result !== "" ? $result : $output;
+
+          return Response::html( $html );
+        };
+
+        return $this->executeMiddlewareStack( $middlewares, $request, $nextHandler );
+      }
+
+      // 3. rotas de API (JSON)
       $match = $this->matchRoute(
         $request->method, 
         $request->path
