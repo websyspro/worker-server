@@ -19,6 +19,7 @@ use Websyspro\Entity\Schemas\SqlServerEntityStructure;
 use Websyspro\Entity\Schemas\SqlServerEntityStructurePersisteds;
 use Websyspro\Entity\Schemas\SqlServerSchemaManager;
 use Websyspro\Utils\Collection;
+use Websyspro\Entity\Decorators\EntityList;
 use Websyspro\WorkerServer\Enums\LogContext;
 use Websyspro\WorkerServer\Enums\RequestMethod;
 use Websyspro\WorkerServer\Request;
