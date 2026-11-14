@@ -57,13 +57,11 @@ abstract class AbstractWorkerServer
     $this->setEnvInits();
     $this->getServerTools();
 
-    /* define JWT Keys */
     $this->rsaKeysGenerator = new RSAKeysGenerator();
     $this->jwtManager = new JwtManager( 
       $this->rsaKeysGenerator->boot()
     );
 
-    /* registra JwtManager como singleton no Container */
     Container::singleton( 
       JwtManager::class, $this->jwtManager
     );

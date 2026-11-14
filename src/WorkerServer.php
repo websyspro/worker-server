@@ -2,8 +2,6 @@
 
 namespace Websyspro\WorkerServer;
 
-use InvalidArgumentException;
-use stdClass;
 use Websyspro\Connection\Database;
 use Websyspro\Connection\Enums\DriverType;
 use Websyspro\Entity\Interfaces\CommandScript;
@@ -21,7 +19,6 @@ use Websyspro\Entity\Schemas\SqlServerEntityStructure;
 use Websyspro\Entity\Schemas\SqlServerEntityStructurePersisteds;
 use Websyspro\Entity\Schemas\SqlServerSchemaManager;
 use Websyspro\Utils\Collection;
-use Websyspro\Entity\Decorators\EntityList;
 use Websyspro\WorkerServer\Enums\LogContext;
 use Websyspro\WorkerServer\Enums\RequestMethod;
 use Websyspro\WorkerServer\Request;
@@ -44,12 +41,14 @@ use function sprintf;
 use function is_array;
 use function is_string;
 use function sizeof;
+use InvalidArgumentException;
 use ErrorException;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionNamedType;
 use Throwable;
 use Closure;
+use stdClass;
 
 class WorkerServer 
 extends AbstractWorkerServer
@@ -275,8 +274,6 @@ extends AbstractWorkerServer
     $controllerPrefix = Controller::getPrefix( $controller );
     $controllerMiddlewares = Controller::getMiddlewaresFromController( $refClass );
 
-
-
     Logger::info("{$refClass->getShortName()} {{$this->prefix}/{$prefix}/{$controllerPrefix}}", LogContext::Controller);
     
     foreach( Controller::getMethodsPublics( $refClass ) as $refMethod ) {
@@ -307,7 +304,6 @@ extends AbstractWorkerServer
         }
       }
 
-      // clear ControllerPaths after processing all request types for this method
       $controllerPaths = [];
     }
 
@@ -414,25 +410,17 @@ extends AbstractWorkerServer
   ): mixed {
     if( $value instanceof Collection ){
       return array_map(
-        fn( $item ) => $this->resultNormalized( $item ),
-        $value->items
+        fn( $item ) => (
+          $this->resultNormalized(
+            $item
+          )
+        ), $value->items
       );
     }
 
-    if( $value instanceof EntityList ){
-      return array_map(
-        fn( $item ) => $this->resultNormalized( $item ),
-        $value->items
-      );
-    }
-
-    if( is_object( $value ) ){
-      if( $value instanceof \JsonSerializable ){
-        return $this->resultNormalized( $value->jsonSerialize() );
-      }
-
+    if( $value instanceof stdClass ){
       $normalized = new stdClass();
-      foreach( get_object_vars( $value ) as $key => $prop ){
+      foreach( $value as $key => $prop ){
         $camelKey = lcfirst( $key );
         $normalized->{ $camelKey } = $this->resultNormalized( $prop );
       }
@@ -441,12 +429,29 @@ extends AbstractWorkerServer
 
     if( is_array( $value ) ){
       return array_map(
-        fn( $item ) => $this->resultNormalized( $item ),
+        fn( $item ) => (
+          $this->resultNormalized( 
+            $item
+          )
+        ),
         $value
       );
     }
 
     return $value;
+  }
+
+  protected function handleRequestNotFoundError(
+    Request $request 
+  ): Response {
+    return Response::json( "404 - {$request->method} {$request->path} nao encontrado", 404 ); 
+  }  
+
+  protected function handleRequestInternalServerError(
+    ErrorException|Throwable $error 
+  ): Response {
+    Logger::error( "{$error->getMessage()} in {$error->getFile()}:{$error->getLine()}", LogContext::Controller );
+    return Response::json( "Internal Server Error", 500 ); 
   }
 
   protected function handleRequest(
@@ -459,9 +464,7 @@ extends AbstractWorkerServer
       );
 
       if( $match === null ){
-        return Response::json(
-          "404 - {$request->method} {$request->path} nao encontrado", 404
-        );
+        return $this->handleRequestNotFoundError( $request );
       }
 
       [ $handler, $params, $middlewares 
@@ -504,28 +507,9 @@ extends AbstractWorkerServer
 
       return $this->executeMiddlewareStack( $middlewares, $request, $nextHandler );
     } catch( ErrorException $error) {
-      Logger::error( sprintf(
-        "%s in %s:%d",
-        $error->getMessage(),
-        $error->getFile(),
-        $error->getLine()
-      ), LogContext::Controller);
-
-      return Response::json([ 
-        "message" => "Internal Server Error"
-      ], 500 );
+      return $this->handleRequestInternalServerError( $error );
     } catch( Throwable $error ) {
-      Logger::error( sprintf(
-        "[%s] %s in %s:%d",
-        get_class( $error ),
-        $error->getMessage(),
-        $error->getFile(),
-        $error->getLine()
-      ), LogContext::Controller);
-
-      return Response::json([ 
-        "message" => "Internal Server Error"
-      ], 500 );
+      return $this->handleRequestInternalServerError( $error );
     }
   }
 }
